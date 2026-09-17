@@ -13,6 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODULES = {
     "SAP Fiori / UI5", "ABAP / Extensibility", "Transport & Release",
     "Integration / OData", "Power BI", "Microsoft Fabric", "Basis / Auth",
+    "SAP Business One",
 }
 SEVERITIES = {"Blocker": 0, "High": 1, "Medium": 2, "Low": 3}
 STATUSES = {"Open", "Investigating", "Resolved"}

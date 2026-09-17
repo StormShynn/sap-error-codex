@@ -1,0 +1,28 @@
+{
+  "title": "SAP Business One Service Layer rejects every subsequent OData call with an \"Invalid session or session already timeout\" error after a successful login",
+  "module": "SAP Business One",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["Invalid session or session already timeout", "B1SESSION", "ROUTEID", "HTTP 401"],
+  "symptom": "Invalid session or session already timeout",
+  "rootCause": "Not verified. Possibly: the B1SESSION cookie issued at /Login expires (default idle timeout is short) or is dropped/mismatched with the ROUTEID cookie when Service Layer sits behind a load balancer with multiple worker processes, so the next request is routed to a worker that never saw the session.\n\nSource: SAP KBA 3383703; SAP Community thread \"The B1 Service Layer sends the error 'Invalid session' randomly\".",
+  "solutions": [
+    {
+      "label": "Re-login and always forward both session cookies",
+      "recommended": true,
+      "body": "Ensure the integration client stores BOTH the B1SESSION and ROUTEID cookies returned by POST /b1s/v1/Login and replays both on every subsequent call.\nIncrease SessionTimeout in the Service Layer config (b1s.conf) if calls are naturally spaced further apart than the default.\nRestart the b1s (Service Layer) service after config changes.\n\nTrade-off: raising the timeout keeps sessions open longer, slightly increasing memory use per idle session on the Service Layer host."
+    },
+    {
+      "label": "Implement automatic re-login on 401",
+      "body": "Catch the 401/\"Invalid session\" response in the client and transparently call Login again before retrying the original request.\n\nAdds latency to the first failed call but avoids manual intervention."
+    }
+  ],
+  "prevention": "Design integrations to detect session-expiry responses and re-authenticate automatically rather than assuming a session stays valid for the life of a batch job.",
+  "refs": [
+    "SAP Note/KBA 3383703",
+    "https://community.sap.com/t5/enterprise-resource-planning-q-a/the-b1-service-layer-sends-the-error-quot-invalid-session-quot-randomly/qaq-p/345524"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

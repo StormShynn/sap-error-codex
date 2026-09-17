@@ -1,0 +1,30 @@
+{
+  "title": "DI API call fails with \"DI Error: (-2028) No matching records found (ODBC -2028) - The di call #1 did fail\" when adding/updating a document",
+  "module": "SAP Business One",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["-2028", "ODBC -2028", "No matching records found", "The di call #1 did fail", "Message 131-183"],
+  "symptom": "DI Error: (-2028) No matching records found (ODBC -2028)-The di call #1 did fail",
+  "rootCause": "A field value set by the calling code references a master-data key (e.g. CardCode, ItemCode, SalesPersonCode, VendorNum) that does not exist in its target table, OR the code manually populated a field that DI API normally auto-fills (Line.ItemCode, Line.VendorNum, Line.ItemDescription, Line.ShipDate, PaymentGroupCode), which then fails DI's internal lookup.\n\nSource: SAP KBA 3133909, SAP KBA 3075050, SAP KBA 2650591; SAP Community thread \"No matching records found (ODBC -2028)\".",
+  "solutions": [
+    {
+      "label": "Remove DI-managed fields and validate referenced codes",
+      "recommended": true,
+      "body": "Strip out any fields in the request payload that DI API auto-populates (Line.ItemCode, Line.VendorNum, Line.ItemDescription, Line.ShipDate, PaymentGroupCode) and let DI derive them.\nBefore calling Add/Update, verify every referenced master-data code (CardCode, ItemCode, SalesPersonCode, WhsCode, AcctCode) actually exists in <company-db> via a lookup call.\nRe-run the DI call with only the minimal required fields set.\n\nTrade-off: requires an extra read call per master-data reference, adding latency to bulk imports."
+    },
+    {
+      "label": "Bisect the payload",
+      "body": "Remove fields from the failing request one at a time (starting with optional/derived ones) until the call succeeds, to isolate which specific code is invalid.\n\nUseful for one-off debugging but not for production error handling."
+    }
+  ],
+  "prevention": "Validate all foreign-key style codes (BP, item, sales employee, warehouse) against SAP Business One before submission in any DI API/DTW integration, and avoid manually setting fields DI API is documented to auto-fill.",
+  "refs": [
+    "SAP Note/KBA 3133909",
+    "SAP Note/KBA 3075050",
+    "SAP Note/KBA 2650591",
+    "https://community.sap.com/t5/enterprise-resource-planning-q-a/no-matching-records-found-odbc-2028/qaq-p/9945210"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

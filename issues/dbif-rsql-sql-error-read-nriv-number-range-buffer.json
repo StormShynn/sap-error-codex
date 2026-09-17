@@ -1,0 +1,30 @@
+{
+  "title": "Posting/reversal transactions dump with DBIF_RSQL_SQL_ERROR in READ_NRIV during number-range buffering",
+  "module": "ABAP / Extensibility",
+  "severity": "High",
+  "status": "Resolved",
+  "verified": false,
+  "msgKeys": ["DBIF_RSQL_SQL_ERROR", "SAPLSNR3", "READ_NRIV", "CX_SY_OPEN_SQL_DB", "SNRO"],
+  "symptom": "Category: ABAP programming error\nRuntime Error: DBIF_RSQL_SQL_ERROR\nException: CX_SY_OPEN_SQL_DB\nThe termination occurred in the ABAP program \"SAPLSNR3\" in \"READ_NRIV\".",
+  "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary, the dump happens during posting/reversal/billing under number-range buffering (table NRIV, transaction SNRO); the deadlock/buffering keywords point to concurrent number-range buffer updates colliding at the database level.\n\nSource: SAP KBA 1888646.",
+  "solutions": [
+    {
+      "label": "Apply KBA 1888646 guidance / adjust SNRO buffering",
+      "recommended": true,
+      "body": "Capture the exact SQL error text from ST22 (deadlock vs lock-wait timeout) and compare it to KBA 1888646.\nCheck the SNRO buffering mode for the affected number range object; switching to main-memory buffering trades a small gap risk for far fewer DB round trips, removing the contention window.\n\nNeeds SNRO change access; validate off-peak since it affects all users of that number range."
+    },
+    {
+      "label": "Retry and monitor",
+      "body": "If it's a one-off transient DB deadlock, reprocess the failed document and watch ST22 for recurrence before changing buffering."
+    }
+  ],
+  "prevention": "Review number-range buffering mode (buffered/main-memory) for any object with high-concurrency posting during design.",
+  "refs": [
+    "SAP KBA 1888646",
+    "SAP KBA 2041477",
+    "Transaction SNRO",
+    "Transaction ST22"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

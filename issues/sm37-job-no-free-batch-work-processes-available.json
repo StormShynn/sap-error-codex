@@ -1,0 +1,32 @@
+{
+  "title": "Background jobs stay Released/Ready with \"No free batch work processes available\" and never start",
+  "module": "Basis / Auth",
+  "severity": "High",
+  "status": "Investigating",
+  "verified": false,
+  "msgKeys": ["No free batch work processes available", "SM37", "Reason for Delay", "BTC"],
+  "symptom": "Job status: Released\nReason for Delay: No free batch work processes available",
+  "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary, the periodic scheduler check found no free BTC work process to dispatch to — commonly all BTC processes occupied by long-running jobs, too few BTC processes configured for the parallel job load, or a stale count vs SM50.\n\nSource: SAP KBA 3148846; SAP KBA 3429310 (SM50-mismatch variant); SAP KBA 3008195 (FAQ).",
+  "solutions": [
+    {
+      "label": "Free up or add BTC work processes",
+      "recommended": true,
+      "body": "In SM50/SM66 identify what's occupying BTC processes; cancel genuinely stuck jobs with owner sign-off.\nIf under-provisioned, increase rdisp/wp_no_btc via RZ10/RZ11 — needs Basis and a maintenance window/instance restart.\nRe-check SM37; Released jobs pick up automatically once a BTC process frees."
+    },
+    {
+      "label": "Reschedule to a quieter window",
+      "body": "If contention is time-bound (e.g. during a HANA backup), shift the job's start time or use RZ04 operation modes/job classes instead of adding capacity."
+    }
+  ],
+  "prevention": "Track daily BTC work-process peak utilization and revisit rdisp/wp_no_btc sizing whenever new recurring jobs are onboarded.",
+  "refs": [
+    "SAP KBA 3148846",
+    "SAP KBA 3429310",
+    "SAP KBA 3705950",
+    "SAP KBA 3008195",
+    "Transaction SM37",
+    "Transaction SM50"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

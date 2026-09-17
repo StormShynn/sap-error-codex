@@ -1,0 +1,29 @@
+{
+  "title": "RAP business object create/update fails at runtime with CX_RAP_HANDLER_NOT_IMPLEMENTED",
+  "module": "ABAP / Extensibility",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["CX_RAP_HANDLER_NOT_IMPLEMENTED", "RAP_RUNTIME006", "Handler not implemented"],
+  "symptom": "Uncaught Exception CX_RAP_HANDLER_NOT_IMPLEMENTED\nHandler not implemented; Method: &1, Involved Entities: &2",
+  "rootCause": "The behavior definition declares an operation/feature (e.g. FOR CREATE, FOR INSTANCE AUTHORIZATION, a custom action, draft handling) but the corresponding local handler method is missing or not activated in the behavior implementation class, so the RAP runtime cannot dispatch the call. This is documented RAP runtime message 006.\n\nSource: SAP Community threads on RAP \"handler not implemented\" and instance authorization on create; message text corroborated by the RAP runtime message reference.",
+  "solutions": [
+    {
+      "label": "Implement the missing handler method",
+      "recommended": true,
+      "body": "In ADT, open the behavior definition and note every operation/feature declared (CREATE, UPDATE, an authorization control, a custom action, draft actions).\nOpen the behavior implementation class (local handler class inheriting CL_ABAP_BEHAVIOR_HANDLER, referenced by \"implementation in class <behavior_implementation_class> unique\") and add/complete the corresponding METHODS/handler for each declared operation.\nActivate the behavior definition and the class together, then re-test the app action that failed."
+    },
+    {
+      "label": "Remove the declared operation/feature if it is not actually needed",
+      "body": "If the operation was declared by mistake (e.g. @AccessControl.authorizationCheck: #CHECK added but no authorization logic is needed yet), remove that clause from the behavior definition instead of leaving an unimplemented stub.\n\nTrade-off: this disables the feature for all consumers until it is properly implemented later."
+    }
+  ],
+  "prevention": "Always activate the behavior definition and its implementation class in the same step; use the ADT quick-fix to generate stub methods for every declared operation so nothing is silently left unimplemented.",
+  "refs": [
+    "https://community.sap.com/t5/technology-q-a/abap-rap-error-quot-handler-not-implemented-method-instance-feature-quot/qaq-p/13661150",
+    "https://community.sap.com/t5/technology-q-a/rap-instance-authorization-on-create/qaq-p/12815018",
+    "https://www.michaelmanagement.com/sap-error-messages/en/rap_runtime/rap_runtime006"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

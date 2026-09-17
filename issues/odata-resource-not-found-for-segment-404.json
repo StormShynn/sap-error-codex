@@ -1,0 +1,29 @@
+{
+  "title": "Fiori app fails with HTTP 404 \"Resource not found for the segment '<segment>'\" after an OData/CDS metadata change",
+  "module": "Integration / OData",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["Resource not found for the segment", "404", "/IWFND/ERROR_LOG"],
+  "symptom": "Resource not found for the segment '<segment>'\nHTTP response status code: 404",
+  "rootCause": "Not verified in full — the source KBA's cause/solution text sits behind an SAP support-portal login; only the title/summary was accessible. Possibly: after a change to the underlying CDS view, RAP behavior definition, or SEGW/Gateway service, the Gateway/OData metadata cache still reflects the old model, so a request for a field/segment that changed or was removed returns 404 even though the backend model was updated.\n\nSource: SAP KBA 2743849 \"Resource not found for the segment 'XXXXXXXX'\"; corroborated by an SAP Community thread with the same symptom.",
+  "solutions": [
+    {
+      "label": "Clear the Gateway/OData metadata cache and republish the service",
+      "recommended": true,
+      "body": "Run transaction /IWFND/CACHE_CLEANUP and /IWBEP/CACHE_CLEANUP on the relevant system(s) to purge stale metadata.\nFor a RAP-based OData V4 service, re-publish the Service Binding in ADT (right-click -> Publish) so the runtime regenerates $metadata.\nReload the Fiori app afterward.\n\nTrade-off: a full cache clear can briefly affect other apps sharing the same Gateway hub, so schedule it outside peak hours if the hub is shared."
+    },
+    {
+      "label": "Diagnose the exact missing segment first",
+      "body": "Reproduce the request in /IWFND/GW_CLIENT and check /IWFND/ERROR_LOG for the failing timestamp to see exactly which segment/property is not found.\nConfirm the CDS view/behavior definition/service definition still exposes that field or association; if it was intentionally renamed/removed, the frontend app also needs to be updated to match."
+    }
+  ],
+  "prevention": "Add a mandatory \"clear OData metadata cache\" step to the deployment checklist whenever a CDS view, behavior definition, or service definition exposed via OData changes its exposed fields/associations.",
+  "refs": [
+    "https://userapps.support.sap.com/sap/support/knowledge/en/2743849",
+    "https://community.sap.com/t5/enterprise-resource-planning-q-a/resource-not-found-for-the-segment-to-materialgroup/qaq-p/13603086",
+    "SAP Note/KBA 2743849"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

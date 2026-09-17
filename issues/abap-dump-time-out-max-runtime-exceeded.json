@@ -1,0 +1,33 @@
+{
+  "title": "ABAP program terminates with short dump TIME_OUT after exceeding maximum work process runtime",
+  "module": "ABAP / Extensibility",
+  "severity": "High",
+  "status": "Resolved",
+  "verified": false,
+  "msgKeys": ["TIME_OUT", "SAPLSENA", "SAPLSZA0", "rdisp/scheduler/prio_high/max_runtime", "ST22"],
+  "symptom": "Runtime Error: TIME_OUT\nShort text: Time limit exceeded.\nWhat happened?\nThe program \"<program name>\" has exceeded the maximum permitted runtime without\ninterruption and has therefore been terminated.",
+  "rootCause": "The dispatcher/work process aborts any step whose runtime exceeds profile parameter rdisp/scheduler/prio_high|normal|low/max_runtime (successor to rdisp/max_wprun_time). It is a protective timeout, usually triggered by an unindexed SELECT, a huge internal-table loop, or unexpectedly large production data volume.\n\nSource: SAP Help \"ABAP Runtime Errors and Short Dumps\"; SAP KBA 2194355 (SAPLSENA case); SAP KBA 2772044 (SAPLSZA0/SAPLBUPA_SELECT case).",
+  "solutions": [
+    {
+      "label": "Analyze and fix the expensive statement",
+      "recommended": true,
+      "body": "Open the dump in ST22, note the program/include/line, then profile with SAT.\nIf a SELECT is the hotspot, run an ST05 SQL trace to find a missing index or bad WHERE clause and add a secondary index (needs a transport).\nIf it's a large loop, add package processing (SELECT ... PACKAGE SIZE) or early exits.\n\nDurable fix; needs the process owner and possibly a DBA to validate index changes."
+    },
+    {
+      "label": "Raise the runtime limit as a stopgap",
+      "recommended": false,
+      "body": "In RZ10/RZ11 temporarily raise rdisp/scheduler/prio_high/max_runtime.\n\nOnly buys time; the performance problem remains and it still competes for work processes. Requires Basis and may need an instance restart."
+    }
+  ],
+  "prevention": "Require an ST05/SQL trace review in the transport checklist for reports/jobs touching high-volume tables.",
+  "refs": [
+    "https://help.sap.com/docs/abap-cloud/abap-development-tools-user-guide/abap-runtime-errors-and-short-dumps",
+    "SAP KBA 2194355",
+    "SAP KBA 2772044",
+    "SAP KBA 2659920",
+    "Transaction ST22",
+    "Transaction SAT"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

@@ -1,0 +1,29 @@
+{
+  "title": "CDS view activation fails with \"Use of annotation 'ObjectModel.compositionRoot' is not permitted (not released)\" in ABAP Cloud",
+  "module": "ABAP / Extensibility",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["ObjectModel.compositionRoot", "not released", "not permitted"],
+  "symptom": "Syntax error during CDS DDL activation:\nUse of annotation 'ObjectModel.compositionRoot' is not permitted (not released)",
+  "rootCause": "The classic ObjectModel.* annotations belong to the older BOPF-based \"ABAP Programming Model for SAP Fiori\" and are not released for the ABAP Cloud development model (S/4HANA Cloud ABAP Environment / BTP ABAP Environment, formerly \"Embedded Steampunk\") — only the ABAP RESTful Application Programming Model (RAP) is released there.\n\nSource: SAP Community blog \"Embedded Steampunk – What's under the hood Part II\"; corroborated by an SAP Community thread on the same CDS annotation error.",
+  "solutions": [
+    {
+      "label": "Re-model the business object with RAP instead of legacy ObjectModel annotations",
+      "recommended": true,
+      "body": "Remove the ObjectModel.compositionRoot / ObjectModel.association.type annotations from the CDS view.\nCreate a Behavior Definition for the root entity and model compositions using RAP's \"composition\" syntax in the CDS association plus root/composition-child declarations in the BDEF instead of the BOPF-oriented annotations.\nActivate the CDS view + BDEF + service definition/binding as a RAP business object."
+    },
+    {
+      "label": "Keep the legacy-annotated view out of ABAP Cloud packages",
+      "body": "If the object genuinely must stay on the classic (on-premise, non-cloud) programming model, keep it in a package/system that is not exposed to the ABAP Cloud development model, since ObjectModel.* + BOPF is not supported there at all."
+    }
+  ],
+  "prevention": "Run the ATC \"Cloud readiness\"/released-API check on any CDS view copied from an on-premise template before moving it into an S/4HANA Cloud or BTP ABAP Environment package.",
+  "refs": [
+    "https://community.sap.com/t5/technology-blog-posts-by-members/embedded-steampunk-what-s-under-the-hood-part-ii/ba-p/13570047",
+    "https://community.sap.com/t5/application-development-discussions/abap-cds-view-error-with-annotation-in-eclipse-editor/td-p/12162957",
+    "https://help.sap.com/docs/abap-cloud/abap-rap/abap-restful-application-programming-model"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

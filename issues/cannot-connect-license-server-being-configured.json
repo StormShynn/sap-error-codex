@@ -1,0 +1,28 @@
+{
+  "title": "SAP Business One client login fails with \"License server is being configured; cannot connect\" right after credentials are entered",
+  "module": "SAP Business One",
+  "severity": "Blocker",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["License server is being configured; cannot connect", "Connection with license server failed", "Message 60070-15"],
+  "symptom": "License server is being configured; cannot connect",
+  "rootCause": "Not verified in full — the KBA's cause section is behind an SAP support-portal login. Possibly: the License Manager / TAO NT Naming Service on the license server host is stopped, still initializing, or unreachable due to a firewall blocking port 30000; can also occur when the license server address configured on the client is wrong or points to a stale IP.\n\nSource: SAP KBA 3495200; SAP Notes 1142479, 1658707, 1785166 per SAP Community references; Boyum IT partner support article on \"Connection to license server failed\".",
+  "solutions": [
+    {
+      "label": "Restart the license service and check port 30000",
+      "recommended": true,
+      "body": "On <host> (the license server), open Windows Services and restart \"SAP Business One License Manager\" (TAO NT Naming Service).\nConfirm no firewall (Windows Firewall or network) is blocking TCP port 30000 between clients and <host>.\nOn an affected client, verify the license server address configured in the SAP Business One client (System Landscape Directory / License Manager settings) matches <host> exactly (not a stale IP/hostname).\n\nTrade-off: restarting the license service briefly disconnects all currently-licensed users; do it during a maintenance window."
+    },
+    {
+      "label": "Validate the DI API local config file",
+      "body": "Check b1-local-machine.xml in the DI API installation folder for a literal \"localhost\" entry where the real license server address should be, and correct it.\n\nOnly relevant when the error originates from a DI API-based add-on rather than the SAP Business One client itself."
+    }
+  ],
+  "prevention": "Set the License Manager/TAO NT Naming Service to Automatic (Delayed Start) so it comes up reliably after a server reboot, and document the license server's stable hostname/IP in the client configuration.",
+  "refs": [
+    "SAP Note/KBA 3495200",
+    "https://support.boyum-it.com/hc/en-us/articles/203420587-SAP-Issue-131-Connection-to-license-server-failed-if-license-server-address-is-invalid-correct-it-if-TAO-NT-Naming-Service-stopped-activate-it-and-restart-license-server"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

@@ -1,0 +1,29 @@
+{
+  "title": "SAP Business One Integration Framework (B1i) clients/dashboards fail with \"Cannot connect to SAP Business One Integration Service, in the Microsoft Service window make sure this service is running\"",
+  "module": "SAP Business One",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["Cannot connect to SAP Business One Integration Service", "make sure this service is running", "B1i", "port 8080", "port 8443"],
+  "symptom": "Cannot connect to SAP Business One Integration Service, in the Microsoft Service window make sure this service is running",
+  "rootCause": "The Windows service \"SAP Business One Integration Service\" (B1i / Tomcat-based server) is stopped, failed to start, or its listening ports (8080/8443) are already bound by another program; a missing/corrupted Visual C++ redistributable on the host has also been reported to prevent the service from starting.\n\nSource: SAP Note 1619422 \"B1ic Troubleshooting Guide\"; SAP Community/Answers threads on \"Cannot connect to SAP Business One Integration Service\".",
+  "solutions": [
+    {
+      "label": "Start the Integration Service and clear port conflicts",
+      "recommended": true,
+      "body": "On the B1i server host, open Windows Services and check \"SAP Business One Integration Service\" (and \"Event Sender Service\"); if stopped, start it and set Startup Type to Automatic.\nIf it fails to start, check for another process bound to TCP 8080/8443 (e.g. another Tomcat/IIS instance) and stop/reconfigure that process.\nConfirm the Visual C++ redistributable required by the B1i installer is present and not corrupted; reinstall if needed.\nRetry the client/dashboard connection.\n\nTrade-off: restarting B1i interrupts any in-flight integration scenarios (DTW-style flows, intercompany, third-party middleware) until it's back up."
+    },
+    {
+      "label": "Re-run the integration component installer to repair DI Proxy",
+      "body": "If the service starts but connections still fail, re-run the SAP Business One integration package installer to repair the DI Proxy component, then restart the service.\n\nMore disruptive; use only if step 1 doesn't resolve it."
+    }
+  ],
+  "prevention": "Set the SAP Business One Integration Service to Automatic (Delayed Start) startup, and reserve ports 8080/8443 exclusively for B1i on that host to avoid third-party service collisions.",
+  "refs": [
+    "SAP Note 1619422",
+    "https://answers.sap.com/questions/11651588/cannot-connect-to-sap-business-one-integration-ser.html",
+    "https://community.sap.com/t5/enterprise-resource-planning-q-a/cannot-connect-to-sap-business-one-integrated-service/qaq-p/8642108"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

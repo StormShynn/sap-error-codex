@@ -1,0 +1,31 @@
+{
+  "title": "SM59 connection test fails with \"timeout during allocate\" / no connect of TP sapdp00",
+  "module": "Basis / Auth",
+  "severity": "High",
+  "status": "Investigating",
+  "verified": false,
+  "msgKeys": ["timeout during allocate", "no connect of TP sapdp00", "RETURN CODE 242", "SM59"],
+  "symptom": "ERROR: timeout during allocate\nDETAIL: no connect of TP sapdp00 from host <host> after 20 sec\nRETURN CODE 242",
+  "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary and related notes, this means the gateway could not reach the partner dispatcher (sapdpNN) within the allocate timeout — typically a blocked network path/firewall, the target instance being down, or (for locally-started RFC servers) gateway launch configuration.\n\nSource: SAP KBA 3619529; SAP Note 638701; SAP Note 948636.",
+  "solutions": [
+    {
+      "label": "Verify network path and gateway, then retest",
+      "recommended": true,
+      "body": "In SM59 run Connection Test and note the exact host/port in the DETAIL line.\nFrom the app server OS, test connectivity to <host>:33<NN> (sapdpNN) and the gateway port; loop in the network/firewall team if blocked.\nConfirm the target instance/gateway is up (SM51, SMGW).\nFor locally-started RFC servers, check parameter rfc/use_gwstart per SAP Notes 638701 / 948636.\n\nBasis + network team; low risk, but a gateway restart may be needed to pick up parameter changes."
+    },
+    {
+      "label": "Increase allocate timeout as stopgap",
+      "body": "Only if the target is merely slow (not unreachable) — raising the timeout on a genuinely blocked path just delays the same failure."
+    }
+  ],
+  "prevention": "Add a scheduled SM59 connection-test/RFC ping job for business-critical destinations so network changes are caught before they break integrations.",
+  "refs": [
+    "SAP KBA 3619529",
+    "SAP Note 638701",
+    "SAP Note 948636",
+    "Transaction SM59",
+    "Transaction SMGW"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

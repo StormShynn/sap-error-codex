@@ -1,0 +1,29 @@
+{
+  "title": "Saving/editing a RAP draft-enabled Fiori Elements app fails with HTTP 412 Precondition Failed",
+  "module": "ABAP / Extensibility",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["412 Precondition Failed", "If-Match", "ETag", "MAP_ETAG"],
+  "symptom": "PATCH/POST to the draft or active instance returns HTTP 412 Precondition Failed\nIf-Match header value sent by the client does not match the current ETag on the server",
+  "rootCause": "In RAP, the field designated as (total) etag master must be kept current by the behavior implementation's FOR READ method (and, for unmanaged save, updated on every MODIFY). If that method does not return/refresh the current etag value, the framework's ETag comparison mismatches even though no other user actually changed the data, and the request is rejected with 412 as if a concurrent edit occurred.\n\nSource: SAP Community blogs \"ETag In RAP\" and \"Handling 412 Precondition Failed and 428 Precondition Required Errors in SAP APIs Using ETag\".",
+  "solutions": [
+    {
+      "label": "Complete the FOR READ implementation so it always returns the current etag field",
+      "recommended": true,
+      "body": "In the behavior implementation class, implement (or fix) the FOR READ method so it always returns the up-to-date value of the field annotated as etag master / total etag, sourced from the database or an EML READ.\nFor unmanaged save scenarios, ensure the field is also explicitly updated on every MODIFY so the stored value and the value returned to the client stay in sync.\nRetest the create/edit/save cycle end-to-end, including concurrent-edit scenarios, since a real 412 should still occur when another user genuinely changed the record."
+    },
+    {
+      "label": "Unblock a stuck user session",
+      "body": "As a temporary workaround, have the user close and reopen (GET again) the object to fetch a fresh ETag before retrying the edit.\n\nThis does not fix the underlying code defect."
+    }
+  ],
+  "prevention": "Add ABAP Unit tests (RAP Test Double Framework) that assert the etag/total-etag field is returned by FOR READ and updated by MODIFY, so a missing etag refresh is caught before transport/deploy.",
+  "refs": [
+    "https://community.sap.com/t5/application-development-and-automation-blog-posts/etag-in-rap/ba-p/13982291",
+    "https://community.sap.com/t5/technology-blog-posts-by-sap/handling-412-precondition-failed-and-428-precondition-required-errors-in/ba-p/13558022",
+    "https://help.sap.com/docs/abap-cloud/abap-rap/unmanaged-save"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}

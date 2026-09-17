@@ -1,5 +1,38 @@
 [
   {
+    "title": "SAP Business One client login fails with \"License server is being configured; cannot connect\" right after credentials are entered",
+    "module": "SAP Business One",
+    "severity": "Blocker",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "License server is being configured; cannot connect",
+      "Connection with license server failed",
+      "Message 60070-15"
+    ],
+    "symptom": "License server is being configured; cannot connect",
+    "rootCause": "Not verified in full — the KBA's cause section is behind an SAP support-portal login. Possibly: the License Manager / TAO NT Naming Service on the license server host is stopped, still initializing, or unreachable due to a firewall blocking port 30000; can also occur when the license server address configured on the client is wrong or points to a stale IP.\n\nSource: SAP KBA 3495200; SAP Notes 1142479, 1658707, 1785166 per SAP Community references; Boyum IT partner support article on \"Connection to license server failed\".",
+    "solutions": [
+      {
+        "label": "Restart the license service and check port 30000",
+        "recommended": true,
+        "body": "On <host> (the license server), open Windows Services and restart \"SAP Business One License Manager\" (TAO NT Naming Service).\nConfirm no firewall (Windows Firewall or network) is blocking TCP port 30000 between clients and <host>.\nOn an affected client, verify the license server address configured in the SAP Business One client (System Landscape Directory / License Manager settings) matches <host> exactly (not a stale IP/hostname).\n\nTrade-off: restarting the license service briefly disconnects all currently-licensed users; do it during a maintenance window."
+      },
+      {
+        "label": "Validate the DI API local config file",
+        "body": "Check b1-local-machine.xml in the DI API installation folder for a literal \"localhost\" entry where the real license server address should be, and correct it.\n\nOnly relevant when the error originates from a DI API-based add-on rather than the SAP Business One client itself."
+      }
+    ],
+    "prevention": "Set the License Manager/TAO NT Naming Service to Automatic (Delayed Start) so it comes up reliably after a server reboot, and document the license server's stable hostname/IP in the client configuration.",
+    "refs": [
+      "SAP Note/KBA 3495200",
+      "https://support.boyum-it.com/hc/en-us/articles/203420587-SAP-Issue-131-Connection-to-license-server-failed-if-license-server-address-is-invalid-correct-it-if-TAO-NT-Naming-Service-stopped-activate-it-and-restart-license-server"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "cannot-connect-license-server-being-configured"
+  },
+  {
     "title": "HTTP 403 on deploy: /UI5/ABAP_REPOSITORY_SRV not activated, or S_DEVELOP missing",
     "module": "Basis / Auth",
     "severity": "Blocker",
@@ -92,6 +125,152 @@
     "id": "ladi-package-conflict"
   },
   {
+    "title": "ABAP program terminates with short dump TIME_OUT after exceeding maximum work process runtime",
+    "module": "ABAP / Extensibility",
+    "severity": "High",
+    "status": "Resolved",
+    "verified": false,
+    "msgKeys": [
+      "TIME_OUT",
+      "SAPLSENA",
+      "SAPLSZA0",
+      "rdisp/scheduler/prio_high/max_runtime",
+      "ST22"
+    ],
+    "symptom": "Runtime Error: TIME_OUT\nShort text: Time limit exceeded.\nWhat happened?\nThe program \"<program name>\" has exceeded the maximum permitted runtime without\ninterruption and has therefore been terminated.",
+    "rootCause": "The dispatcher/work process aborts any step whose runtime exceeds profile parameter rdisp/scheduler/prio_high|normal|low/max_runtime (successor to rdisp/max_wprun_time). It is a protective timeout, usually triggered by an unindexed SELECT, a huge internal-table loop, or unexpectedly large production data volume.\n\nSource: SAP Help \"ABAP Runtime Errors and Short Dumps\"; SAP KBA 2194355 (SAPLSENA case); SAP KBA 2772044 (SAPLSZA0/SAPLBUPA_SELECT case).",
+    "solutions": [
+      {
+        "label": "Analyze and fix the expensive statement",
+        "recommended": true,
+        "body": "Open the dump in ST22, note the program/include/line, then profile with SAT.\nIf a SELECT is the hotspot, run an ST05 SQL trace to find a missing index or bad WHERE clause and add a secondary index (needs a transport).\nIf it's a large loop, add package processing (SELECT ... PACKAGE SIZE) or early exits.\n\nDurable fix; needs the process owner and possibly a DBA to validate index changes."
+      },
+      {
+        "label": "Raise the runtime limit as a stopgap",
+        "recommended": false,
+        "body": "In RZ10/RZ11 temporarily raise rdisp/scheduler/prio_high/max_runtime.\n\nOnly buys time; the performance problem remains and it still competes for work processes. Requires Basis and may need an instance restart."
+      }
+    ],
+    "prevention": "Require an ST05/SQL trace review in the transport checklist for reports/jobs touching high-volume tables.",
+    "refs": [
+      "https://help.sap.com/docs/abap-cloud/abap-development-tools-user-guide/abap-runtime-errors-and-short-dumps",
+      "SAP KBA 2194355",
+      "SAP KBA 2772044",
+      "SAP KBA 2659920",
+      "Transaction ST22",
+      "Transaction SAT"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "abap-dump-time-out-max-runtime-exceeded"
+  },
+  {
+    "title": "SAP Business One Integration Framework (B1i) clients/dashboards fail with \"Cannot connect to SAP Business One Integration Service, in the Microsoft Service window make sure this service is running\"",
+    "module": "SAP Business One",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "Cannot connect to SAP Business One Integration Service",
+      "make sure this service is running",
+      "B1i",
+      "port 8080",
+      "port 8443"
+    ],
+    "symptom": "Cannot connect to SAP Business One Integration Service, in the Microsoft Service window make sure this service is running",
+    "rootCause": "The Windows service \"SAP Business One Integration Service\" (B1i / Tomcat-based server) is stopped, failed to start, or its listening ports (8080/8443) are already bound by another program; a missing/corrupted Visual C++ redistributable on the host has also been reported to prevent the service from starting.\n\nSource: SAP Note 1619422 \"B1ic Troubleshooting Guide\"; SAP Community/Answers threads on \"Cannot connect to SAP Business One Integration Service\".",
+    "solutions": [
+      {
+        "label": "Start the Integration Service and clear port conflicts",
+        "recommended": true,
+        "body": "On the B1i server host, open Windows Services and check \"SAP Business One Integration Service\" (and \"Event Sender Service\"); if stopped, start it and set Startup Type to Automatic.\nIf it fails to start, check for another process bound to TCP 8080/8443 (e.g. another Tomcat/IIS instance) and stop/reconfigure that process.\nConfirm the Visual C++ redistributable required by the B1i installer is present and not corrupted; reinstall if needed.\nRetry the client/dashboard connection.\n\nTrade-off: restarting B1i interrupts any in-flight integration scenarios (DTW-style flows, intercompany, third-party middleware) until it's back up."
+      },
+      {
+        "label": "Re-run the integration component installer to repair DI Proxy",
+        "body": "If the service starts but connections still fail, re-run the SAP Business One integration package installer to repair the DI Proxy component, then restart the service.\n\nMore disruptive; use only if step 1 doesn't resolve it."
+      }
+    ],
+    "prevention": "Set the SAP Business One Integration Service to Automatic (Delayed Start) startup, and reserve ports 8080/8443 exclusively for B1i on that host to avoid third-party service collisions.",
+    "refs": [
+      "SAP Note 1619422",
+      "https://answers.sap.com/questions/11651588/cannot-connect-to-sap-business-one-integration-ser.html",
+      "https://community.sap.com/t5/enterprise-resource-planning-q-a/cannot-connect-to-sap-business-one-integrated-service/qaq-p/8642108"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "b1i-cannot-connect-integration-service"
+  },
+  {
+    "title": "Logging into an SAP Business One company right after restoring a database over an existing one with the same name fails with \"Connection to the database is lost\" (ODBC -1102)",
+    "module": "SAP Business One",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "Connection to the database is lost",
+      "ODBC -1102",
+      "Message 131-183",
+      "Refresh Database User"
+    ],
+    "symptom": "Connection to the database is lost; contact your system administrator (ODBC -1102) (Message 131-183)",
+    "rootCause": "When a database is restored over (or with the same name as) an existing SAP Business One company, the System Landscape Directory (SLD) still holds the old database-user credentials/mapping for that company, which no longer match the restored database, so the client cannot log in.\n\nSource: SAP Note 3303958 \"Login Error When Restoring the Same Database\".",
+    "solutions": [
+      {
+        "label": "Delete-then-restore and refresh the DB user in SLD",
+        "recommended": true,
+        "body": "Do not simply overwrite the existing company database with a restore. Instead:\nDelete the old database (e.g. <company-db>) from SQL Server/HANA.\nIn the SLD control center, select the company and choose \"Refresh Database User\".\nRestore the new backup using the same database name as the one just deleted.\nLog in to the company as usual.\n\nTrade-off: requires the company to be offline during the delete+restore window; skipping the \"Refresh Database User\" step reproduces the error even after a clean restore (confirmed as still required on FP 2305+ per the SAP Note)."
+      },
+      {
+        "label": "Refresh DB user after any restore, even non-overwrite ones",
+        "body": "As a safety habit, run SLD -> company -> \"Refresh Database User\" after every restore of that company's database, whether or not the name changed, since stale credential caching has been observed even in same-name restores on newer patch levels."
+      }
+    ],
+    "prevention": "Make \"SLD Refresh Database User\" a standard, documented step in the DBA restore runbook for SAP Business One, not an optional afterthought.",
+    "refs": [
+      "SAP Note 3303958"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "connection-to-database-lost-after-restore-odbc-1102"
+  },
+  {
+    "title": "Posting/reversal transactions dump with DBIF_RSQL_SQL_ERROR in READ_NRIV during number-range buffering",
+    "module": "ABAP / Extensibility",
+    "severity": "High",
+    "status": "Resolved",
+    "verified": false,
+    "msgKeys": [
+      "DBIF_RSQL_SQL_ERROR",
+      "SAPLSNR3",
+      "READ_NRIV",
+      "CX_SY_OPEN_SQL_DB",
+      "SNRO"
+    ],
+    "symptom": "Category: ABAP programming error\nRuntime Error: DBIF_RSQL_SQL_ERROR\nException: CX_SY_OPEN_SQL_DB\nThe termination occurred in the ABAP program \"SAPLSNR3\" in \"READ_NRIV\".",
+    "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary, the dump happens during posting/reversal/billing under number-range buffering (table NRIV, transaction SNRO); the deadlock/buffering keywords point to concurrent number-range buffer updates colliding at the database level.\n\nSource: SAP KBA 1888646.",
+    "solutions": [
+      {
+        "label": "Apply KBA 1888646 guidance / adjust SNRO buffering",
+        "recommended": true,
+        "body": "Capture the exact SQL error text from ST22 (deadlock vs lock-wait timeout) and compare it to KBA 1888646.\nCheck the SNRO buffering mode for the affected number range object; switching to main-memory buffering trades a small gap risk for far fewer DB round trips, removing the contention window.\n\nNeeds SNRO change access; validate off-peak since it affects all users of that number range."
+      },
+      {
+        "label": "Retry and monitor",
+        "body": "If it's a one-off transient DB deadlock, reprocess the failed document and watch ST22 for recurrence before changing buffering."
+      }
+    ],
+    "prevention": "Review number-range buffering mode (buffered/main-memory) for any object with high-concurrency posting during design.",
+    "refs": [
+      "SAP KBA 1888646",
+      "SAP KBA 2041477",
+      "Transaction SNRO",
+      "Transaction ST22"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "dbif-rsql-sql-error-read-nriv-number-range-buffer"
+  },
+  {
     "title": "HTTP 502 Bad Gateway: the destination URL includes a service path",
     "module": "Basis / Auth",
     "severity": "High",
@@ -154,6 +333,40 @@
     "createdAt": "2026-09-17T10:03:00.000Z",
     "updatedAt": "2026-09-17T10:03:00.000Z",
     "id": "http-503-cloud-connector"
+  },
+  {
+    "title": "Fiori app fails with HTTP 404 \"Resource not found for the segment '<segment>'\" after an OData/CDS metadata change",
+    "module": "Integration / OData",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "Resource not found for the segment",
+      "404",
+      "/IWFND/ERROR_LOG"
+    ],
+    "symptom": "Resource not found for the segment '<segment>'\nHTTP response status code: 404",
+    "rootCause": "Not verified in full — the source KBA's cause/solution text sits behind an SAP support-portal login; only the title/summary was accessible. Possibly: after a change to the underlying CDS view, RAP behavior definition, or SEGW/Gateway service, the Gateway/OData metadata cache still reflects the old model, so a request for a field/segment that changed or was removed returns 404 even though the backend model was updated.\n\nSource: SAP KBA 2743849 \"Resource not found for the segment 'XXXXXXXX'\"; corroborated by an SAP Community thread with the same symptom.",
+    "solutions": [
+      {
+        "label": "Clear the Gateway/OData metadata cache and republish the service",
+        "recommended": true,
+        "body": "Run transaction /IWFND/CACHE_CLEANUP and /IWBEP/CACHE_CLEANUP on the relevant system(s) to purge stale metadata.\nFor a RAP-based OData V4 service, re-publish the Service Binding in ADT (right-click -> Publish) so the runtime regenerates $metadata.\nReload the Fiori app afterward.\n\nTrade-off: a full cache clear can briefly affect other apps sharing the same Gateway hub, so schedule it outside peak hours if the hub is shared."
+      },
+      {
+        "label": "Diagnose the exact missing segment first",
+        "body": "Reproduce the request in /IWFND/GW_CLIENT and check /IWFND/ERROR_LOG for the failing timestamp to see exactly which segment/property is not found.\nConfirm the CDS view/behavior definition/service definition still exposes that field or association; if it was intentionally renamed/removed, the frontend app also needs to be updated to match."
+      }
+    ],
+    "prevention": "Add a mandatory \"clear OData metadata cache\" step to the deployment checklist whenever a CDS view, behavior definition, or service definition exposed via OData changes its exposed fields/associations.",
+    "refs": [
+      "https://userapps.support.sap.com/sap/support/knowledge/en/2743849",
+      "https://community.sap.com/t5/enterprise-resource-planning-q-a/resource-not-found-for-the-segment-to-materialgroup/qaq-p/13603086",
+      "SAP Note/KBA 2743849"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "odata-resource-not-found-for-segment-404"
   },
   {
     "title": "App deploys fine but cannot reach its OData service",
@@ -221,6 +434,40 @@
     "createdAt": "2026-09-17T08:10:00.000Z",
     "updatedAt": "2026-09-17T09:09:00.000Z",
     "id": "package-not-found"
+  },
+  {
+    "title": "RAP business object create/update fails at runtime with CX_RAP_HANDLER_NOT_IMPLEMENTED",
+    "module": "ABAP / Extensibility",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "CX_RAP_HANDLER_NOT_IMPLEMENTED",
+      "RAP_RUNTIME006",
+      "Handler not implemented"
+    ],
+    "symptom": "Uncaught Exception CX_RAP_HANDLER_NOT_IMPLEMENTED\nHandler not implemented; Method: &1, Involved Entities: &2",
+    "rootCause": "The behavior definition declares an operation/feature (e.g. FOR CREATE, FOR INSTANCE AUTHORIZATION, a custom action, draft handling) but the corresponding local handler method is missing or not activated in the behavior implementation class, so the RAP runtime cannot dispatch the call. This is documented RAP runtime message 006.\n\nSource: SAP Community threads on RAP \"handler not implemented\" and instance authorization on create; message text corroborated by the RAP runtime message reference.",
+    "solutions": [
+      {
+        "label": "Implement the missing handler method",
+        "recommended": true,
+        "body": "In ADT, open the behavior definition and note every operation/feature declared (CREATE, UPDATE, an authorization control, a custom action, draft actions).\nOpen the behavior implementation class (local handler class inheriting CL_ABAP_BEHAVIOR_HANDLER, referenced by \"implementation in class <behavior_implementation_class> unique\") and add/complete the corresponding METHODS/handler for each declared operation.\nActivate the behavior definition and the class together, then re-test the app action that failed."
+      },
+      {
+        "label": "Remove the declared operation/feature if it is not actually needed",
+        "body": "If the operation was declared by mistake (e.g. @AccessControl.authorizationCheck: #CHECK added but no authorization logic is needed yet), remove that clause from the behavior definition instead of leaving an unimplemented stub.\n\nTrade-off: this disables the feature for all consumers until it is properly implemented later."
+      }
+    ],
+    "prevention": "Always activate the behavior definition and its implementation class in the same step; use the ADT quick-fix to generate stub methods for every declared operation so nothing is silently left unimplemented.",
+    "refs": [
+      "https://community.sap.com/t5/technology-q-a/abap-rap-error-quot-handler-not-implemented-method-instance-feature-quot/qaq-p/13661150",
+      "https://community.sap.com/t5/technology-q-a/rap-instance-authorization-on-create/qaq-p/12815018",
+      "https://www.michaelmanagement.com/sap-error-messages/en/rap_runtime/rap_runtime006"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "rap-handler-not-implemented-exception"
   },
   {
     "title": "Deploy to S/4HANA Public Cloud fails at authentication (reentranceTicket)",
@@ -295,6 +542,81 @@
     "createdAt": "2026-09-17T10:06:00.000Z",
     "updatedAt": "2026-09-17T10:06:00.000Z",
     "id": "repository-already-exists"
+  },
+  {
+    "title": "SM59 connection test fails with \"timeout during allocate\" / no connect of TP sapdp00",
+    "module": "Basis / Auth",
+    "severity": "High",
+    "status": "Investigating",
+    "verified": false,
+    "msgKeys": [
+      "timeout during allocate",
+      "no connect of TP sapdp00",
+      "RETURN CODE 242",
+      "SM59"
+    ],
+    "symptom": "ERROR: timeout during allocate\nDETAIL: no connect of TP sapdp00 from host <host> after 20 sec\nRETURN CODE 242",
+    "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary and related notes, this means the gateway could not reach the partner dispatcher (sapdpNN) within the allocate timeout — typically a blocked network path/firewall, the target instance being down, or (for locally-started RFC servers) gateway launch configuration.\n\nSource: SAP KBA 3619529; SAP Note 638701; SAP Note 948636.",
+    "solutions": [
+      {
+        "label": "Verify network path and gateway, then retest",
+        "recommended": true,
+        "body": "In SM59 run Connection Test and note the exact host/port in the DETAIL line.\nFrom the app server OS, test connectivity to <host>:33<NN> (sapdpNN) and the gateway port; loop in the network/firewall team if blocked.\nConfirm the target instance/gateway is up (SM51, SMGW).\nFor locally-started RFC servers, check parameter rfc/use_gwstart per SAP Notes 638701 / 948636.\n\nBasis + network team; low risk, but a gateway restart may be needed to pick up parameter changes."
+      },
+      {
+        "label": "Increase allocate timeout as stopgap",
+        "body": "Only if the target is merely slow (not unreachable) — raising the timeout on a genuinely blocked path just delays the same failure."
+      }
+    ],
+    "prevention": "Add a scheduled SM59 connection-test/RFC ping job for business-critical destinations so network changes are caught before they break integrations.",
+    "refs": [
+      "SAP KBA 3619529",
+      "SAP Note 638701",
+      "SAP Note 948636",
+      "Transaction SM59",
+      "Transaction SMGW"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "rfc-destination-timeout-during-allocate-sm59"
+  },
+  {
+    "title": "Background jobs stay Released/Ready with \"No free batch work processes available\" and never start",
+    "module": "Basis / Auth",
+    "severity": "High",
+    "status": "Investigating",
+    "verified": false,
+    "msgKeys": [
+      "No free batch work processes available",
+      "SM37",
+      "Reason for Delay",
+      "BTC"
+    ],
+    "symptom": "Job status: Released\nReason for Delay: No free batch work processes available",
+    "rootCause": "Not verified in full — the KBA's cause/solution text sits behind an SAP support-portal login; only the symptom text was confirmed directly. Per the KBA summary, the periodic scheduler check found no free BTC work process to dispatch to — commonly all BTC processes occupied by long-running jobs, too few BTC processes configured for the parallel job load, or a stale count vs SM50.\n\nSource: SAP KBA 3148846; SAP KBA 3429310 (SM50-mismatch variant); SAP KBA 3008195 (FAQ).",
+    "solutions": [
+      {
+        "label": "Free up or add BTC work processes",
+        "recommended": true,
+        "body": "In SM50/SM66 identify what's occupying BTC processes; cancel genuinely stuck jobs with owner sign-off.\nIf under-provisioned, increase rdisp/wp_no_btc via RZ10/RZ11 — needs Basis and a maintenance window/instance restart.\nRe-check SM37; Released jobs pick up automatically once a BTC process frees."
+      },
+      {
+        "label": "Reschedule to a quieter window",
+        "body": "If contention is time-bound (e.g. during a HANA backup), shift the job's start time or use RZ04 operation modes/job classes instead of adding capacity."
+      }
+    ],
+    "prevention": "Track daily BTC work-process peak utilization and revisit rdisp/wp_no_btc sizing whenever new recurring jobs are onboarded.",
+    "refs": [
+      "SAP KBA 3148846",
+      "SAP KBA 3429310",
+      "SAP KBA 3705950",
+      "SAP KBA 3008195",
+      "Transaction SM37",
+      "Transaction SM50"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "sm37-job-no-free-batch-work-processes-available"
   },
   {
     "title": "Deploy succeeds but no tile appears on the Fiori Launchpad",
@@ -391,6 +713,77 @@
     "id": "undeploy-behaviour"
   },
   {
+    "title": "CDS view activation fails with \"Use of annotation 'ObjectModel.compositionRoot' is not permitted (not released)\" in ABAP Cloud",
+    "module": "ABAP / Extensibility",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "ObjectModel.compositionRoot",
+      "not released",
+      "not permitted"
+    ],
+    "symptom": "Syntax error during CDS DDL activation:\nUse of annotation 'ObjectModel.compositionRoot' is not permitted (not released)",
+    "rootCause": "The classic ObjectModel.* annotations belong to the older BOPF-based \"ABAP Programming Model for SAP Fiori\" and are not released for the ABAP Cloud development model (S/4HANA Cloud ABAP Environment / BTP ABAP Environment, formerly \"Embedded Steampunk\") — only the ABAP RESTful Application Programming Model (RAP) is released there.\n\nSource: SAP Community blog \"Embedded Steampunk – What's under the hood Part II\"; corroborated by an SAP Community thread on the same CDS annotation error.",
+    "solutions": [
+      {
+        "label": "Re-model the business object with RAP instead of legacy ObjectModel annotations",
+        "recommended": true,
+        "body": "Remove the ObjectModel.compositionRoot / ObjectModel.association.type annotations from the CDS view.\nCreate a Behavior Definition for the root entity and model compositions using RAP's \"composition\" syntax in the CDS association plus root/composition-child declarations in the BDEF instead of the BOPF-oriented annotations.\nActivate the CDS view + BDEF + service definition/binding as a RAP business object."
+      },
+      {
+        "label": "Keep the legacy-annotated view out of ABAP Cloud packages",
+        "body": "If the object genuinely must stay on the classic (on-premise, non-cloud) programming model, keep it in a package/system that is not exposed to the ABAP Cloud development model, since ObjectModel.* + BOPF is not supported there at all."
+      }
+    ],
+    "prevention": "Run the ATC \"Cloud readiness\"/released-API check on any CDS view copied from an on-premise template before moving it into an S/4HANA Cloud or BTP ABAP Environment package.",
+    "refs": [
+      "https://community.sap.com/t5/technology-blog-posts-by-members/embedded-steampunk-what-s-under-the-hood-part-ii/ba-p/13570047",
+      "https://community.sap.com/t5/application-development-discussions/abap-cds-view-error-with-annotation-in-eclipse-editor/td-p/12162957",
+      "https://help.sap.com/docs/abap-cloud/abap-rap/abap-restful-application-programming-model"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "cds-annotation-objectmodel-not-released-abap-cloud"
+  },
+  {
+    "title": "DI API call fails with \"DI Error: (-2028) No matching records found (ODBC -2028) - The di call #1 did fail\" when adding/updating a document",
+    "module": "SAP Business One",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "-2028",
+      "ODBC -2028",
+      "No matching records found",
+      "The di call #1 did fail",
+      "Message 131-183"
+    ],
+    "symptom": "DI Error: (-2028) No matching records found (ODBC -2028)-The di call #1 did fail",
+    "rootCause": "A field value set by the calling code references a master-data key (e.g. CardCode, ItemCode, SalesPersonCode, VendorNum) that does not exist in its target table, OR the code manually populated a field that DI API normally auto-fills (Line.ItemCode, Line.VendorNum, Line.ItemDescription, Line.ShipDate, PaymentGroupCode), which then fails DI's internal lookup.\n\nSource: SAP KBA 3133909, SAP KBA 3075050, SAP KBA 2650591; SAP Community thread \"No matching records found (ODBC -2028)\".",
+    "solutions": [
+      {
+        "label": "Remove DI-managed fields and validate referenced codes",
+        "recommended": true,
+        "body": "Strip out any fields in the request payload that DI API auto-populates (Line.ItemCode, Line.VendorNum, Line.ItemDescription, Line.ShipDate, PaymentGroupCode) and let DI derive them.\nBefore calling Add/Update, verify every referenced master-data code (CardCode, ItemCode, SalesPersonCode, WhsCode, AcctCode) actually exists in <company-db> via a lookup call.\nRe-run the DI call with only the minimal required fields set.\n\nTrade-off: requires an extra read call per master-data reference, adding latency to bulk imports."
+      },
+      {
+        "label": "Bisect the payload",
+        "body": "Remove fields from the failing request one at a time (starting with optional/derived ones) until the call succeeds, to isolate which specific code is invalid.\n\nUseful for one-off debugging but not for production error handling."
+      }
+    ],
+    "prevention": "Validate all foreign-key style codes (BP, item, sales employee, warehouse) against SAP Business One before submission in any DI API/DTW integration, and avoid manually setting fields DI API is documented to auto-fill.",
+    "refs": [
+      "SAP Note/KBA 3133909",
+      "SAP Note/KBA 3075050",
+      "SAP Note/KBA 2650591",
+      "https://community.sap.com/t5/enterprise-resource-planning-q-a/no-matching-records-found-odbc-2028/qaq-p/9945210"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "di-api-error-2028-no-matching-records"
+  },
+  {
     "title": "HTTP 504 Gateway Timeout when deploying a large app",
     "module": "Basis / Auth",
     "severity": "Medium",
@@ -456,6 +849,41 @@
     "id": "local-object-user-error"
   },
   {
+    "title": "Saving/editing a RAP draft-enabled Fiori Elements app fails with HTTP 412 Precondition Failed",
+    "module": "ABAP / Extensibility",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "412 Precondition Failed",
+      "If-Match",
+      "ETag",
+      "MAP_ETAG"
+    ],
+    "symptom": "PATCH/POST to the draft or active instance returns HTTP 412 Precondition Failed\nIf-Match header value sent by the client does not match the current ETag on the server",
+    "rootCause": "In RAP, the field designated as (total) etag master must be kept current by the behavior implementation's FOR READ method (and, for unmanaged save, updated on every MODIFY). If that method does not return/refresh the current etag value, the framework's ETag comparison mismatches even though no other user actually changed the data, and the request is rejected with 412 as if a concurrent edit occurred.\n\nSource: SAP Community blogs \"ETag In RAP\" and \"Handling 412 Precondition Failed and 428 Precondition Required Errors in SAP APIs Using ETag\".",
+    "solutions": [
+      {
+        "label": "Complete the FOR READ implementation so it always returns the current etag field",
+        "recommended": true,
+        "body": "In the behavior implementation class, implement (or fix) the FOR READ method so it always returns the up-to-date value of the field annotated as etag master / total etag, sourced from the database or an EML READ.\nFor unmanaged save scenarios, ensure the field is also explicitly updated on every MODIFY so the stored value and the value returned to the client stay in sync.\nRetest the create/edit/save cycle end-to-end, including concurrent-edit scenarios, since a real 412 should still occur when another user genuinely changed the record."
+      },
+      {
+        "label": "Unblock a stuck user session",
+        "body": "As a temporary workaround, have the user close and reopen (GET again) the object to fetch a fresh ETag before retrying the edit.\n\nThis does not fix the underlying code defect."
+      }
+    ],
+    "prevention": "Add ABAP Unit tests (RAP Test Double Framework) that assert the etag/total-etag field is returned by FOR READ and updated by MODIFY, so a missing etag refresh is caught before transport/deploy.",
+    "refs": [
+      "https://community.sap.com/t5/application-development-and-automation-blog-posts/etag-in-rap/ba-p/13982291",
+      "https://community.sap.com/t5/technology-blog-posts-by-sap/handling-412-precondition-failed-and-428-precondition-required-errors-in/ba-p/13558022",
+      "https://help.sap.com/docs/abap-cloud/abap-rap/unmanaged-save"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "rap-draft-save-412-precondition-failed-etag"
+  },
+  {
     "title": "unable to get local issuer certificate when deploying from VS Code",
     "module": "Basis / Auth",
     "severity": "Medium",
@@ -487,6 +915,40 @@
     "createdAt": "2026-09-17T10:05:00.000Z",
     "updatedAt": "2026-09-17T10:05:00.000Z",
     "id": "self-signed-cert-deploy"
+  },
+  {
+    "title": "SAP Business One Service Layer rejects every subsequent OData call with an \"Invalid session or session already timeout\" error after a successful login",
+    "module": "SAP Business One",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
+    "msgKeys": [
+      "Invalid session or session already timeout",
+      "B1SESSION",
+      "ROUTEID",
+      "HTTP 401"
+    ],
+    "symptom": "Invalid session or session already timeout",
+    "rootCause": "Not verified. Possibly: the B1SESSION cookie issued at /Login expires (default idle timeout is short) or is dropped/mismatched with the ROUTEID cookie when Service Layer sits behind a load balancer with multiple worker processes, so the next request is routed to a worker that never saw the session.\n\nSource: SAP KBA 3383703; SAP Community thread \"The B1 Service Layer sends the error 'Invalid session' randomly\".",
+    "solutions": [
+      {
+        "label": "Re-login and always forward both session cookies",
+        "recommended": true,
+        "body": "Ensure the integration client stores BOTH the B1SESSION and ROUTEID cookies returned by POST /b1s/v1/Login and replays both on every subsequent call.\nIncrease SessionTimeout in the Service Layer config (b1s.conf) if calls are naturally spaced further apart than the default.\nRestart the b1s (Service Layer) service after config changes.\n\nTrade-off: raising the timeout keeps sessions open longer, slightly increasing memory use per idle session on the Service Layer host."
+      },
+      {
+        "label": "Implement automatic re-login on 401",
+        "body": "Catch the 401/\"Invalid session\" response in the client and transparently call Login again before retrying the original request.\n\nAdds latency to the first failed call but avoids manual intervention."
+      }
+    ],
+    "prevention": "Design integrations to detect session-expiry responses and re-authenticate automatically rather than assuming a session stays valid for the life of a batch job.",
+    "refs": [
+      "SAP Note/KBA 3383703",
+      "https://community.sap.com/t5/enterprise-resource-planning-q-a/the-b1-service-layer-sends-the-error-quot-invalid-session-quot-randomly/qaq-p/345524"
+    ],
+    "createdAt": "2026-09-17T10:00:00.000Z",
+    "updatedAt": "2026-09-17T10:00:00.000Z",
+    "id": "service-layer-invalid-session-timeout"
   },
   {
     "title": "Deploy succeeds but the browser still loads the old version of the app",

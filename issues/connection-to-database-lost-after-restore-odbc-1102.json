@@ -1,0 +1,27 @@
+{
+  "title": "Logging into an SAP Business One company right after restoring a database over an existing one with the same name fails with \"Connection to the database is lost\" (ODBC -1102)",
+  "module": "SAP Business One",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
+  "msgKeys": ["Connection to the database is lost", "ODBC -1102", "Message 131-183", "Refresh Database User"],
+  "symptom": "Connection to the database is lost; contact your system administrator (ODBC -1102) (Message 131-183)",
+  "rootCause": "When a database is restored over (or with the same name as) an existing SAP Business One company, the System Landscape Directory (SLD) still holds the old database-user credentials/mapping for that company, which no longer match the restored database, so the client cannot log in.\n\nSource: SAP Note 3303958 \"Login Error When Restoring the Same Database\".",
+  "solutions": [
+    {
+      "label": "Delete-then-restore and refresh the DB user in SLD",
+      "recommended": true,
+      "body": "Do not simply overwrite the existing company database with a restore. Instead:\nDelete the old database (e.g. <company-db>) from SQL Server/HANA.\nIn the SLD control center, select the company and choose \"Refresh Database User\".\nRestore the new backup using the same database name as the one just deleted.\nLog in to the company as usual.\n\nTrade-off: requires the company to be offline during the delete+restore window; skipping the \"Refresh Database User\" step reproduces the error even after a clean restore (confirmed as still required on FP 2305+ per the SAP Note)."
+    },
+    {
+      "label": "Refresh DB user after any restore, even non-overwrite ones",
+      "body": "As a safety habit, run SLD -> company -> \"Refresh Database User\" after every restore of that company's database, whether or not the name changed, since stale credential caching has been observed even in same-name restores on newer patch levels."
+    }
+  ],
+  "prevention": "Make \"SLD Refresh Database User\" a standard, documented step in the DBA restore runbook for SAP Business One, not an optional afterthought.",
+  "refs": [
+    "SAP Note 3303958"
+  ],
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:00:00.000Z"
+}
