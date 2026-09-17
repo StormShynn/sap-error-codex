@@ -1,31 +1,31 @@
 {
-  "createdAt": "2026-09-17T10:01:00.000Z",
+  "title": "HTTP 502 Bad Gateway: the destination URL includes a service path",
   "module": "Basis / Auth",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "HTTP 502",
     "Bad Gateway",
     "ABAP_REPOSITORY_SRV"
   ],
-  "prevention": "Chuẩn hoá cách khai destination trong tài liệu dự án: URL = hostname, không bao giờ kèm path.",
+  "symptom": "The deploy returns HTTP 502 Bad Gateway. The system is reachable but the response is not valid.",
+  "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the destination's URL field carries a service path, so the final request path ends up duplicated and points nowhere valid.",
+  "solutions": [
+    {
+      "label": "Set the destination URL to the hostname only",
+      "recommended": true,
+      "body": "The destination URL must be:\n  https://<hostname>\n\nNo /sap/opu/odata/... and no other path segment."
+    },
+    {
+      "label": "Inspect the actual request path with DEBUG",
+      "body": "DEBUG=* npm run deploy\n\nThe correct path is:\n  /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV\n\nIf you see that segment twice, or appended after another path, the destination URL is the problem."
+    }
+  ],
+  "prevention": "Standardise how destinations are declared in the project documentation: URL = hostname, never with a path.",
   "refs": [
     "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
   ],
-  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: trường URL của destination bị khai kèm service path, khiến đường dẫn cuối cùng bị lặp đoạn và trỏ sai.",
-  "severity": "Cao",
-  "solutions": [
-    {
-      "body": "URL của destination phải là:\n  https://<hostname>\n\nKhông kèm /sap/opu/odata/... hay bất kỳ path nào.",
-      "label": "Đặt destination URL chỉ gồm hostname",
-      "recommended": true
-    },
-    {
-      "body": "DEBUG=* npm run deploy\n\nĐường dẫn đúng phải là:\n  /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV\n\nNếu thấy đoạn này xuất hiện hai lần hoặc bị nối sau một path khác → đúng là lỗi destination URL.",
-      "label": "Kiểm tra đường dẫn thực tế bằng DEBUG"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy trả về HTTP 502 Bad Gateway. Kết nối tới được hệ thống nhưng phản hồi không hợp lệ.",
-  "title": "HTTP 502 Bad Gateway — destination URL bị khai kèm service path",
-  "updatedAt": "2026-09-17T10:01:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T10:01:00.000Z",
+  "updatedAt": "2026-09-17T10:01:00.000Z"
 }

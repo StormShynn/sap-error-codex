@@ -1,117 +1,117 @@
 # SAP Error Codex
 
-Sổ tay tra cứu lỗi triển khai **SAP Fiori / UI5, ABAP Extensibility, Transport và Integration** — tìm theo **message ID**, không phải theo tiêu đề.
+A searchable reference of **SAP Fiori / UI5, ABAP extensibility, transport and integration** deployment errors — indexed by **message ID**, not by title.
 
-Khi bạn gặp lỗi, thứ bạn có trong tay là `/UI2/UI5_REP_LOAD-039` hoặc `HTTP 403`, không phải một câu mô tả. Kho này index theo đúng thứ đó.
+When you hit an error, what you actually have in front of you is `/UI2/UI5_REP_LOAD-039` or `HTTP 403`, not a sentence describing it. This reference is indexed on that.
 
-**Trang tra cứu:** https://stormshynn.github.io/sap-error-codex/
+**Browse:** https://stormshynn.github.io/sap-error-codex/
 
 ---
 
-## Nội dung hiện có
+## What's in it
 
-| Mảng | Số mục |
+| Area | Entries |
 |---|---|
 | SAP Fiori / UI5 | 12 |
 | Basis / Auth | 5 |
 | Transport & Release | 2 |
 | Integration / OData | 2 |
 | ABAP / Extensibility | 1 |
-| **Tổng** | **22** |
+| **Total** | **22** |
 
-Một vài mục tiêu biểu:
+A few representative entries:
 
-- `ladi-package-conflict` — *SAPUI5 application can only be deployed to the previous package* (xung đột LADI, không phải package)
-- `http-403-repository-srv` — 403 do service `/UI5/ABAP_REPOSITORY_SRV` chưa activate hoặc thiếu `S_DEVELOP`
-- `testmode-pass-deploy-fail` — vì sao `--testMode` báo OK mà deploy thật vẫn fail
-- `self-signed-cert-deploy` — `unable to get local issuer certificate`
-- `unknown-file-type-upload` — file bị bỏ qua khi upload (`.Ui5RepositoryTextFiles`)
+- `ladi-package-conflict` — *SAPUI5 application can only be deployed to the previous package*. The conflict is on the LADI, not the package; changing `package` in the yaml does nothing.
+- `http-403-repository-srv` — 403 because `/UI5/ABAP_REPOSITORY_SRV` is not activated, which looks exactly like an authorization failure but isn't.
+- `testmode-pass-deploy-fail` — why `--testMode` reports success and the real deploy still fails.
+- `unknown-file-type-upload` — files silently skipped at upload (`.Ui5RepositoryTextFiles`).
+- `self-signed-cert-deploy` — `unable to get local issuer certificate`.
 
 ---
 
-## Nguyên tắc: cờ "Đã xác minh"
+## The `verified` flag
 
-Mỗi mục có trường `verified`:
+Every entry carries a `verified` field:
 
-| Giá trị | Nghĩa |
+| Value | Meaning |
 |---|---|
-| `true` | Cách xử lý đã chạy thành công trên hệ thống thật, có người chứng kiến |
-| `false` | Soạn từ tài liệu, blog, hoặc kinh nghiệm chung — **kiểm tra trước khi áp dụng** |
+| `true` | The fix was executed on a real system and it worked. Someone watched it happen. |
+| `false` | Written from documentation, blog posts, or general experience — **check it before you apply it** |
 
-Hiện tại **4/22** mục ở mức `true`. Con số này quan trọng hơn tổng số mục: một kho 200 mục không rõ độ tin cậy thì vô dụng trong lúc đang chữa cháy.
+**4 of 22** entries are currently `true`. That number matters more than the total: a reference with 200 entries of unknown reliability is useless at the moment you actually need it.
 
-Trong từng cách xử lý, phần `body` cũng ghi rõ "Đã xác minh" hay "Chưa xác minh".
+Individual fixes say so too — each `body` opens with "Verified" or "Not verified".
 
 ---
 
-## Cấu trúc dữ liệu
+## How the data is organised
 
-Nguồn sự thật là các file trong `issues/` — mỗi lỗi một file JSON. `data/issues.json` là bản gộp do script sinh ra, dùng cho trang web.
+The source of truth is `issues/` — one JSON file per error. `data/issues.json` is a generated bundle used by the web page.
 
 ```
-issues/<id>.json     ← sửa ở đây
-data/issues.json     ← sinh ra, đừng sửa tay
-index.html           ← trang tra cứu tĩnh
-scripts/build.py     ← gộp issues/ thành data/issues.json
+issues/<id>.json     <- edit here
+data/issues.json     <- generated, do not hand-edit
+index.html           <- static reference page
+scripts/build.py     <- merges issues/ into data/issues.json, validates schema
 ```
 
-### Schema một mục
+### Entry schema
 
 ```json
 {
-  "title": "Tiêu đề ngắn, nêu đúng hiện tượng người dùng gặp",
+  "title": "Short line naming what the person actually sees",
   "module": "SAP Fiori / UI5",
-  "severity": "Blocker | Cao | Trung bình | Thấp",
-  "status": "Mở | Đang điều tra | Đã giải quyết",
+  "severity": "Blocker | High | Medium | Low",
+  "status": "Open | Investigating | Resolved",
   "verified": false,
   "msgKeys": ["/UI2/UI5_REP_LOAD-039", "HTTP 400"],
-  "symptom": "Dán đúng dòng log quyết định — đó là thứ người sau sẽ tìm",
-  "rootCause": "Vì sao xảy ra. Nếu chưa chắc, ghi rõ 'Chưa xác minh'",
+  "symptom": "The log line that decides it, verbatim. That is what the next person searches for.",
+  "rootCause": "Why it happens. If you are not sure, say 'Not verified' and give the possibilities.",
   "solutions": [
-    { "label": "Tên cách xử lý", "body": "Các bước cụ thể", "recommended": true }
+    { "label": "Name of the fix", "body": "Concrete steps", "recommended": true }
   ],
-  "prevention": "Làm gì để lần sau không gặp lại",
+  "prevention": "What to change so this does not recur",
   "refs": ["SAP Note 1797736", "https://..."],
   "createdAt": "2026-09-17T10:00:00.000Z",
   "updatedAt": "2026-09-17T10:00:00.000Z"
 }
 ```
 
-`module` phải là một trong: `SAP Fiori / UI5`, `ABAP / Extensibility`, `Transport & Release`, `Integration / OData`, `Power BI`, `Microsoft Fabric`, `Basis / Auth`.
+`module` must be one of: `SAP Fiori / UI5`, `ABAP / Extensibility`, `Transport & Release`, `Integration / OData`, `Power BI`, `Microsoft Fabric`, `Basis / Auth`.
 
 ---
 
-## Chạy local
+## Running it locally
 
 ```bash
-python3 scripts/build.py     # gộp issues/ → data/issues.json
-python3 -m http.server 8000  # mở http://localhost:8000
+python3 scripts/build.py     # merge issues/ -> data/issues.json
+python3 -m http.server 8000  # open http://localhost:8000
 ```
 
-Mở `index.html` trực tiếp bằng `file://` sẽ không chạy — trình duyệt chặn `fetch` trên giao thức đó.
+Opening `index.html` straight from disk over `file://` will not work — browsers block `fetch` on that scheme.
 
 ---
 
-## Đóng góp
+## Contributing
 
-Xem [CONTRIBUTING.md](CONTRIBUTING.md). Ba cách, từ nhẹ đến nặng:
+See [CONTRIBUTING.md](CONTRIBUTING.md). Three routes, lightest first:
 
-1. **Mở issue** — dùng template, không cần biết git
-2. **Pull request** — thêm hoặc sửa file trong `issues/`, chạy `scripts/build.py`, commit cả hai
-3. **Bật cờ verified** — khi bạn đã chạy thật một cách xử lý và nó hoạt động, đổi `verified` thành `true` và ghi ngày vào `updatedAt`
+1. **Open an issue** — use a template, no git needed
+2. **Send a pull request** — add or edit a file in `issues/`, run `scripts/build.py`, commit both
+3. **Flip a `verified` flag** — when you have run a fix and it worked, set `verified` to `true` and update `updatedAt`
 
-Đóng góp giá trị nhất không phải mục mới, mà là **xác minh mục đã có**.
-
----
-
-## Giới hạn đã biết
-
-- Phần lớn tài liệu chính thức của SAP (help.sap.com, launchpad.support.sap.com) chặn truy cập tự động, nên nội dung ở đây tổng hợp từ log thực tế, tài liệu mở của SAP-samples, và SAP Community. Luôn đối chiếu SAP Note gốc trước khi áp dụng lên PRD.
-- Các mục về Power BI và Microsoft Fabric chưa có nội dung — schema đã sẵn sàng.
-- Không chứa thông tin hệ thống cụ thể: không hostname, không tenant ID, không tên người dùng, không transport number thật. Giữ nguyên nguyên tắc này khi đóng góp.
+The most valuable contribution is not a new entry. It is verifying one that already exists.
 
 ---
 
-## Giấy phép
+## Known limits
 
-MIT — xem [LICENSE](LICENSE).
+- Most official SAP documentation (help.sap.com, launchpad.support.sap.com) blocks automated access, so this content is assembled from real deployment logs, SAP's own open samples repositories, and SAP Community threads. Always check the original SAP Note before applying anything to production.
+- The Power BI and Microsoft Fabric areas are empty so far. The schema is ready for them.
+- No system-specific information is stored here: no hostnames, tenant IDs, usernames, or real transport numbers. Keep it that way when contributing.
+
+---
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).

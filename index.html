@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SAP Error Codex</title>
-<meta name="description" content="Kho tra cuu loi trien khai SAP Fiori, ABAP va data platform - tim theo message ID.">
+<meta name="description" content="A searchable reference of SAP Fiori, ABAP and integration deployment errors, indexed by message ID.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root {
@@ -169,9 +169,9 @@
   .row[aria-current="true"] { background: var(--accent-soft); }
   .row-stripe { background: var(--ink-faint); }
   .row-stripe.sev-blocker { background: var(--crit); }
-  .row-stripe.sev-cao     { background: var(--warn); }
-  .row-stripe.sev-trungbinh { background: var(--info); }
-  .row-stripe.sev-thap    { background: var(--line-strong); }
+  .row-stripe.sev-high    { background: var(--warn); }
+  .row-stripe.sev-medium  { background: var(--info); }
+  .row-stripe.sev-low     { background: var(--line-strong); }
   .row-body { padding: 11px 14px; min-width: 0; }
   .row-title { font-weight: 600; font-size: 13.5px; line-height: 1.4; margin: 0 0 5px; text-wrap: balance; }
   .row-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--ink-faint); }
@@ -182,9 +182,9 @@
     font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px; font-weight: 500;
     background: var(--surface-sunk); color: var(--ink-soft); white-space: nowrap;
   }
-  .tag.st-mo        { background: var(--crit-soft); color: var(--crit); }
-  .tag.st-dangdieutra{ background: var(--warn-soft); color: var(--warn); }
-  .tag.st-dagiaiquyet{ background: var(--ok-soft);  color: var(--ok); }
+  .tag.st-open      { background: var(--crit-soft); color: var(--crit); }
+  .tag.st-investigating{ background: var(--warn-soft); color: var(--warn); }
+  .tag.st-resolved  { background: var(--ok-soft);  color: var(--ok); }
   .tag.verified     { background: var(--ok-soft); color: var(--ok); }
   .tag.unverified   { background: var(--warn-soft); color: var(--warn); }
 
@@ -310,6 +310,8 @@
   [hidden]{display:none!important}
   .repo-link{font-size:12.5px;color:var(--ink-soft);text-decoration:none;white-space:nowrap}
   .repo-link:hover{color:var(--accent)}
+  .refs a{color:var(--accent);text-decoration:none;word-break:break-all}
+  .refs a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -318,31 +320,31 @@
   <header class="topbar">
     <div class="brand">
       <h1>SAP Error Codex</h1>
-      <span class="org">Sổ tay lỗi triển khai</span>
+      <span class="org">Deployment error reference</span>
     </div>
     <div class="search">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
         <circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path>
       </svg>
-      <input id="q" type="text" placeholder="Tìm: LADI, /UI2/UI5_REP_LOAD, 403, transport…" autocomplete="off" aria-label="Tìm kiếm lỗi">
+      <input id="q" type="text" placeholder="Search: LADI, /UI2/UI5_REP_LOAD, 403, transport&hellip;" autocomplete="off" aria-label="Search errors">
     </div>
     <div class="topbar-actions">
-      <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">đang tải</span></span>
-      <a class="repo-link" id="repoLink" href="#" target="_blank" rel="noopener">Đóng góp trên GitHub →</a>
+      <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">loading</span></span>
+      <a class="repo-link" id="repoLink" href="#" target="_blank" rel="noopener">Contribute on GitHub &rarr;</a>
     </div>
   </header>
 
   <div class="banner" id="banner" hidden></div>
 
   <div class="filters">
-    <div class="fgroup"><span class="flabel">Mảng</span><span id="fModule"></span></div>
-    <div class="fgroup"><span class="flabel">Mức độ</span><span id="fSeverity"></span></div>
-    <div class="fgroup"><span class="flabel">Trạng thái</span><span id="fStatus"></span></div>
-    <div class="fgroup"><button class="chip" id="fVerified" aria-pressed="false">Chỉ mục đã xác minh</button></div>
+    <div class="fgroup"><span class="flabel">Area</span><span id="fModule"></span></div>
+    <div class="fgroup"><span class="flabel">Severity</span><span id="fSeverity"></span></div>
+    <div class="fgroup"><span class="flabel">Status</span><span id="fStatus"></span></div>
+    <div class="fgroup"><button class="chip" id="fVerified" aria-pressed="false">Verified only</button></div>
   </div>
 
   <div class="panes">
-    <nav class="list" id="list" aria-label="Danh sách lỗi"></nav>
+    <nav class="list" id="list" aria-label="Error list"></nav>
     <main class="detail" id="detail"></main>
   </div>
 </div>
@@ -352,8 +354,8 @@
   "use strict";
   var REPO = "https://github.com/StormShynn/sap-error-codex";
   var MODULES  = ["SAP Fiori / UI5", "ABAP / Extensibility", "Transport & Release", "Integration / OData", "Power BI", "Microsoft Fabric", "Basis / Auth"];
-  var SEVS     = ["Blocker", "Cao", "Trung bình", "Thấp"];
-  var STATUSES = ["Mở", "Đang điều tra", "Đã giải quyết"];
+  var SEVS     = ["Blocker", "High", "Medium", "Low"];
+  var STATUSES = ["Open", "Investigating", "Resolved"];
 
   var state = { issues: [], q: "", module: null, severity: null, status: null, verifiedOnly: false, selected: null };
   var $ = function (id) { return document.getElementById(id); };
@@ -361,8 +363,7 @@
   $("repoLink").href = REPO + "/issues/new/choose";
 
   function slug(s) {
-    return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d").replace(/[^a-z0-9]/g, "");
+    return String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
   }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -372,7 +373,7 @@
   }
   function when(ts) {
     if (!ts) return "—";
-    return new Date(ts).toLocaleDateString("vi-VN");
+    return new Date(ts).toISOString().slice(0, 10);
   }
   function banner(msg) {
     var b = $("banner");
@@ -382,7 +383,7 @@
 
   function buildChips(host, values, key) {
     var mount = $(host); mount.textContent = "";
-    var all = el("button", "chip", "Tất cả");
+    var all = el("button", "chip", "All");
     all.setAttribute("aria-pressed", "true");
     all.onclick = function () { state[key] = null; render(); };
     mount.appendChild(all);
@@ -423,7 +424,7 @@
     $("fVerified").setAttribute("aria-pressed", state.verifiedOnly ? "true" : "false");
 
     var rows = state.issues.filter(matches).sort(function (a, b) {
-      var w = { "Blocker": 0, "Cao": 1, "Trung bình": 2, "Thấp": 3 };
+      var w = { "Blocker": 0, "High": 1, "Medium": 2, "Low": 3 };
       var d = (w[a.severity] == null ? 9 : w[a.severity]) - (w[b.severity] == null ? 9 : w[b.severity]);
       return d !== 0 ? d : String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
     });
@@ -431,7 +432,7 @@
     var list = $("list"); list.textContent = "";
     if (!rows.length) {
       var e = el("div", "empty");
-      e.appendChild(el("p", null, state.issues.length ? "Không có mục nào khớp bộ lọc." : "Đang tải dữ liệu…"));
+      e.appendChild(el("p", null, state.issues.length ? "Nothing matches these filters." : "Loading…"));
       list.appendChild(e);
     }
     rows.forEach(function (it) {
@@ -439,7 +440,7 @@
       if (state.selected === it.id) row.setAttribute("aria-current", "true");
       row.appendChild(el("span", "row-stripe sev-" + slug(it.severity || "")));
       var body = el("div", "row-body");
-      body.appendChild(el("p", "row-title", it.title || "(chưa đặt tên)"));
+      body.appendChild(el("p", "row-title", it.title || "(untitled)"));
       var meta = el("div", "row-meta");
       meta.appendChild(el("span", "tag", it.module || "—"));
       meta.appendChild(el("span", "tag st-" + slug(it.status || ""), it.status || "—"));
@@ -467,22 +468,22 @@
     var d = $("detail"); d.textContent = "";
     if (!it) {
       var e = el("div", "empty");
-      e.appendChild(el("p", null, "Chọn một mục ở danh sách bên trái để xem chi tiết."));
+      e.appendChild(el("p", null, "Pick an entry from the list to read it."));
       d.appendChild(e);
       return;
     }
     var doc = el("article", "doc");
     var head = el("header", "doc-head");
-    var back = el("button", "btn btn-quiet back-btn", "← Danh sách");
+    var back = el("button", "btn btn-quiet back-btn", "← All errors");
     back.onclick = function () { app.dataset.view = "list"; };
     head.appendChild(back);
     head.appendChild(el("div", "doc-eyebrow", (it.module || "—") + " · " + it.id));
-    head.appendChild(el("h2", null, it.title || "(chưa đặt tên)"));
+    head.appendChild(el("h2", null, it.title || "(untitled)"));
     var badges = el("div", "doc-badges");
     badges.appendChild(el("span", "tag st-" + slug(it.status || ""), it.status || "—"));
-    badges.appendChild(el("span", "tag", "Mức độ: " + (it.severity || "—")));
+    badges.appendChild(el("span", "tag", "Severity: " + (it.severity || "—")));
     badges.appendChild(el("span", "tag " + (it.verified ? "verified" : "unverified"),
-      it.verified ? "Đã xác minh trên hệ thống thật" : "Chưa xác minh — kiểm tra trước khi áp dụng"));
+      it.verified ? "Verified on a real system" : "Unverified — check before applying"));
     head.appendChild(badges);
     if (it.msgKeys && it.msgKeys.length) {
       var keys = el("div", "doc-keys");
@@ -491,24 +492,24 @@
     }
     doc.appendChild(head);
 
-    if (it.symptom)   doc.appendChild(section("Triệu chứng", el("p", "prose", it.symptom)));
-    if (it.rootCause) doc.appendChild(section("Nguyên nhân", el("p", "prose", it.rootCause)));
+    if (it.symptom)   doc.appendChild(section("Symptom", el("p", "prose", it.symptom)));
+    if (it.rootCause) doc.appendChild(section("Cause", el("p", "prose", it.rootCause)));
 
     if (it.solutions && it.solutions.length) {
       var wrap = el("div");
       it.solutions.forEach(function (s, i) {
         var f = el("div", "fix" + (s.recommended ? " rec" : ""));
         var fh = el("div", "fix-head");
-        fh.appendChild(el("span", "fix-num", "C" + (i + 1)));
+        fh.appendChild(el("span", "fix-num", String(i + 1)));
         fh.appendChild(el("span", "fix-label", s.label || ""));
-        if (s.recommended) fh.appendChild(el("span", "fix-rec", "Khuyến nghị"));
+        if (s.recommended) fh.appendChild(el("span", "fix-rec", "Recommended"));
         f.appendChild(fh);
         f.appendChild(el("p", "prose", s.body || ""));
         wrap.appendChild(f);
       });
-      doc.appendChild(section("Cách xử lý", wrap));
+      doc.appendChild(section("Fixes", wrap));
     }
-    if (it.prevention) doc.appendChild(section("Phòng ngừa lần sau", el("p", "prose muted", it.prevention)));
+    if (it.prevention) doc.appendChild(section("Preventing a repeat", el("p", "prose muted", it.prevention)));
     if (it.refs && it.refs.length) {
       var ul = el("ul", "refs");
       it.refs.forEach(function (r) {
@@ -519,15 +520,15 @@
         } else { li.textContent = r; }
         ul.appendChild(li);
       });
-      doc.appendChild(section("Tham chiếu", ul));
+      doc.appendChild(section("References", ul));
     }
 
     var foot = el("div", "doc-foot");
-    foot.appendChild(el("span", null, "Cập nhật " + when(it.updatedAt)));
+    foot.appendChild(el("span", null, "Updated " + when(it.updatedAt)));
     foot.appendChild(el("span", "spacer"));
     var fix = el("a", "btn");
-    fix.textContent = "Đề xuất sửa mục này";
-    fix.href = REPO + "/issues/new?template=sua-muc.yml&title=" + encodeURIComponent("[Sửa] " + it.id);
+    fix.textContent = "Suggest a correction";
+    fix.href = REPO + "/issues/new?template=amend-entry.yml&title=" + encodeURIComponent("[Amend] " + it.id);
     fix.target = "_blank"; fix.rel = "noopener";
     foot.appendChild(fix);
     doc.appendChild(foot);
@@ -551,7 +552,7 @@
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function (rows) {
       state.issues = rows;
-      $("liveText").textContent = rows.length + " mục";
+      $("liveText").textContent = rows.length + " entries";
       var hash = location.hash.replace("#", "");
       if (hash && rows.some(function (r) { return r.id === hash; })) {
         state.selected = hash;
@@ -563,8 +564,8 @@
     })
     .catch(function (err) {
       $("liveDot").className = "dot off";
-      $("liveText").textContent = "lỗi tải";
-      banner("Không đọc được data/issues.json (" + err.message + "). Nếu bạn mở file bằng file:// thì trình duyệt sẽ chặn — chạy một web server tĩnh, ví dụ: python3 -m http.server");
+      $("liveText").textContent = "load failed";
+      banner("Could not read data/issues.json (" + err.message + "). Opening this file over file:// will not work — serve it instead, e.g. python3 -m http.server");
     });
 })();
 </script>

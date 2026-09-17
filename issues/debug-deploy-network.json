@@ -1,30 +1,30 @@
 {
-  "createdAt": "2026-09-17T10:08:00.000Z",
+  "title": "How to enable network-level debugging on a deploy",
   "module": "SAP Fiori / UI5",
+  "severity": "Low",
+  "status": "Resolved",
+  "verified": false,
   "msgKeys": [
     "DEBUG",
     "NODE_DEBUG"
   ],
-  "prevention": "Lưu file deploy-debug.log kèm theo mỗi lần mở ticket cho Basis hoặc SAP — rút ngắn đáng kể thời gian qua lại.\n\nLưu ý bảo mật: log này có thể chứa token hoặc cookie phiên. Rà soát trước khi gửi ra ngoài, không commit vào git.",
+  "symptom": "A deploy fails and it is unclear where the request actually goes, what headers it carries, or how it redirects — especially when you suspect the destination, a proxy or a certificate.",
+  "rootCause": "The deploy tooling's default log does not cover the HTTP layer. Node.js debugging has to be switched on.",
+  "solutions": [
+    {
+      "label": "Mac / Linux",
+      "recommended": true,
+      "body": "DEBUG=* NODE_DEBUG=http,https,net,tls npm run deploy 2>&1 | tee deploy-debug.log\n\nThen search the file for:\n- the actual request path (it must contain /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV)\n- the returned status code\n- any TLS error"
+    },
+    {
+      "label": "Windows PowerShell",
+      "body": "$env:DEBUG=\"*\"; $env:NODE_DEBUG=\"http,https,net,tls\"; npm run deploy 2>&1 | Tee-Object deploy-debug.log"
+    }
+  ],
+  "prevention": "Attach deploy-debug.log whenever you open a ticket with Basis or SAP — it cuts the round trips considerably.\n\nSecurity note: this log can contain tokens or session cookies. Review it before sending it anywhere, and never commit it.",
   "refs": [
     "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
   ],
-  "rootCause": "Log mặc định của deploy tooling không in tầng HTTP. Cần bật debug của Node.js.",
-  "severity": "Thấp",
-  "solutions": [
-    {
-      "body": "DEBUG=* NODE_DEBUG=http,https,net,tls npm run deploy 2>&1 | tee deploy-debug.log\n\nSau đó tìm trong file:\n- đường dẫn thực tế của request (phải chứa /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV)\n- mã trạng thái trả về\n- lỗi TLS nếu có",
-      "label": "Mac / Linux",
-      "recommended": true
-    },
-    {
-      "body": "$env:DEBUG=\"*\"; $env:NODE_DEBUG=\"http,https,net,tls\"; npm run deploy 2>&1 | Tee-Object deploy-debug.log",
-      "label": "Windows PowerShell"
-    }
-  ],
-  "status": "Đã giải quyết",
-  "symptom": "Deploy fail nhưng không rõ request đi đến đâu, header gì, redirect ra sao — đặc biệt khi nghi ngờ destination, proxy hoặc chứng chỉ.",
-  "title": "Cách bật debug mạng để soi request deploy",
-  "updatedAt": "2026-09-17T10:08:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T10:08:00.000Z",
+  "updatedAt": "2026-09-17T10:08:00.000Z"
 }

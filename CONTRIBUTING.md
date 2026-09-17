@@ -1,71 +1,71 @@
-# Đóng góp
+# Contributing
 
-## Nguyên tắc trên hết: đừng đoán
+## First rule: don't guess
 
-Nếu bạn không chắc nguyên nhân, viết ra phần mình chắc và ghi rõ phần mình đoán:
+If you are not sure about the cause, write down the part you know and mark the part you are guessing:
 
-> Chưa xác minh. Khả năng: ...
+> Not verified. Possibly: ...
 
-Một mục ghi rõ ranh giới giữa "biết" và "đoán" hữu ích hơn nhiều một mục nghe chắc chắn nhưng sai. Người đọc mục này thường đang chữa cháy và sẽ làm theo ngay.
+An entry that draws a clear line between what is known and what is assumed is far more useful than one that sounds confident and is wrong. The person reading it is usually mid-incident and will act on it immediately.
 
-## Không đưa thông tin hệ thống thật vào
+## Keep real system details out
 
-Không hostname, tenant ID, tên người dùng, transport number thật, không dán log chứa token hay cookie phiên.
+No hostnames, tenant IDs, usernames, real transport numbers. Never paste a log containing a token or session cookie.
 
-Thay bằng placeholder:
+Use placeholders instead:
 
 ```
 https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html
 Transport Request "<TRANSPORT>" has been determined ...
 ```
 
-## Cách 1 — Mở issue (không cần git)
+## Route 1 — Open an issue (no git required)
 
-Vào tab Issues → New issue → chọn template. Điền được bao nhiêu thì điền; maintainer sẽ chuyển thành file JSON.
+Issues tab → New issue → pick a template. Fill in what you have; a maintainer will turn it into a JSON entry.
 
-Dán **nguyên văn dòng log quyết định** — đó là thứ có giá trị nhất, đừng diễn giải lại.
+Paste the **decisive log line verbatim**. That is the most valuable part — don't paraphrase it.
 
-## Cách 2 — Pull request
+## Route 2 — Pull request
 
 ```bash
-git checkout -b them-loi-<mo-ta-ngan>
-# tạo hoặc sửa issues/<id>.json
+git checkout -b add-<short-description>
+# create or edit issues/<id>.json
 python3 scripts/build.py
 git add issues/ data/issues.json
-git commit -m "Thêm: <tiêu đề lỗi>"
-git push origin them-loi-<mo-ta-ngan>
+git commit -m "Add: <error title>"
+git push origin add-<short-description>
 ```
 
-Quy ước đặt `id` (tên file): chữ thường, nối bằng gạch ngang, mô tả hiện tượng chứ không mô tả app.
+Naming the `id` (the filename): lowercase, hyphenated, describing the symptom rather than the app it happened to.
 
-- ✅ `http-403-repository-srv`, `ladi-package-conflict`, `transport-not-modifiable`
-- ❌ `loi-zqm04`, `bug-2`, `issue-thang-9`
+- Good: `http-403-repository-srv`, `ladi-package-conflict`, `transport-not-modifiable`
+- Bad: `zqm04-bug`, `issue-2`, `september-error`
 
-## Cách 3 — Xác minh mục đã có
+## Route 3 — Verify an existing entry
 
-Đây là đóng góp giá trị nhất.
+This is the most valuable contribution in the repository.
 
-Khi bạn chạy thật một cách xử lý và nó hoạt động:
+When you have run a documented fix and it worked:
 
-1. Đổi `"verified": false` → `true`
-2. Trong `solutions[].body`, đổi "Chưa xác minh" → "Đã xác minh: <ngày>, <môi trường>"
-3. Cập nhật `updatedAt`
-4. Chạy `python3 scripts/build.py` rồi commit
+1. Change `"verified": false` to `true`
+2. In the relevant `solutions[].body`, change "Not verified" to "Verified: \<date\>, \<environment\>"
+3. Update `updatedAt`
+4. Run `python3 scripts/build.py` and commit both files
 
-Nếu cách xử lý **không** hoạt động, cũng có giá trị ngang: ghi vào `body` điều kiện nào làm nó thất bại.
+If the fix did **not** work, that is worth just as much: record in the `body` what conditions made it fail.
 
-## Cách viết từng trường
+## Writing each field
 
-**`symptom`** — dán đúng dòng log quyết định, không phải toàn bộ log. Với lỗi deploy Fiori, dòng quyết định gần như luôn nằm ngay sau `* Updating the Application Index *` hoặc trong khối `* Operations *`.
+**`symptom`** — the decisive log line, not the whole log. For Fiori deployment failures the decisive line is almost always right after `* Updating the Application Index *` or inside the `* Operations *` block.
 
-**`solutions`** — xếp theo thứ tự nên thử. Đúng một cách được đánh `recommended: true`. Mỗi `body` phải có lệnh hoặc đường dẫn transaction cụ thể, không viết chung chung kiểu "kiểm tra cấu hình".
+**`solutions`** — ordered by what to try first. Exactly one carries `recommended: true`. Every `body` needs a concrete command or transaction path; "check the configuration" helps nobody.
 
-Nêu cả cái giá phải trả: downtime, cần quyền gì, phải nhờ ai.
+State the cost too: downtime, authorizations required, who else has to be involved.
 
-**`prevention`** — điều gì đáng thay đổi trong quy trình để lỗi này không lặp lại. Nếu không nghĩ ra, để trống còn hơn viết cho có.
+**`prevention`** — what is worth changing in the process so this does not come back. If nothing comes to mind, leave it empty rather than padding it.
 
-**`refs`** — SAP Note, KBA, link tài liệu, tên transaction. URL đầy đủ sẽ tự thành link trên trang web.
+**`refs`** — SAP Notes, KBAs, documentation links, transaction codes. Full URLs are rendered as links on the web page.
 
 ## Review
 
-Maintainer sẽ kiểm: có thông tin hệ thống thật không, cờ `verified` có tương xứng với bằng chứng không, `module` và `severity` có hợp lệ không, và `data/issues.json` đã được build lại chưa.
+A maintainer checks: no real system details, the `verified` flag matches the evidence given, `module` and `severity` are valid, and `data/issues.json` was rebuilt.

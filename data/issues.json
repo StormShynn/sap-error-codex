@@ -1,47 +1,50 @@
 [
   {
-    "createdAt": "2026-09-17T10:00:00.000Z",
+    "title": "HTTP 403 on deploy: /UI5/ABAP_REPOSITORY_SRV not activated, or S_DEVELOP missing",
     "module": "Basis / Auth",
+    "severity": "Blocker",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "HTTP 403",
       "S_DEVELOP",
       "/UI5/ABAP_REPOSITORY_SRV",
       "/IWFND/MAINT_SERVICE"
     ],
-    "prevention": "Đưa 2 điều kiện này vào checklist onboarding môi trường mới: service /UI5/ABAP_REPOSITORY_SRV đã activate, và user deploy có S_DEVELOP (hoặc role Developer Extensibility trên Cloud).",
+    "symptom": "The deploy stops right at the start:\n\n  Error: request failed with status code 403.\n\nIt never reaches the upload phase.",
+    "rootCause": "Two independent causes, both returning 403:\n\n1. The OData service /UI5/ABAP_REPOSITORY_SRV is not activated on the ABAP system. The system answers 403 rather than 404 when the service is unavailable — which reads like an authorization problem but is not one.\n2. The deploying user is missing the S_DEVELOP authorization object on the backend.\n\nNot verified on our own systems — sourced from SAP-samples documentation and a community blog post.",
+    "solutions": [
+      {
+        "label": "Activate the service via /IWFND/MAINT_SERVICE (on-premise systems)",
+        "recommended": true,
+        "body": "1. Transaction: /n/IWFND/MAINT_SERVICE\n2. System Alias: LOCAL\n3. Technical Service Name: /UI5/*\n4. Get Services -> select /UI5/ABAP_REPOSITORY_SRV -> Add\n5. Assign a package ($TMP for development-only, or a transportable package)\n\nAfter activation the service appears in SICF at:\n  /sap/opu/odata/ui5/abap_repository_srv\n\nDoes not apply to S/4HANA Public Cloud, where the service ships activated — see solution 2."
+      },
+      {
+        "label": "Grant S_DEVELOP to the deploying user",
+        "body": "Ask Basis to grant the S_DEVELOP authorization object on the backend system.\n\nOn S/4HANA Public Cloud the equivalent is a Business Role containing the Developer Extensibility catalog — check it through the Maintain Business Roles app."
+      },
+      {
+        "label": "Tell a service 403 apart from an authorization 403",
+        "body": "Open this directly in the browser after signing in:\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/?$format=json\n\n- 403 for an admin user too -> the service is not activated\n- 403 only for your user -> missing authorization"
+      }
+    ],
+    "prevention": "Put both conditions on the checklist for any new environment: /UI5/ABAP_REPOSITORY_SRV activated, and the deploying user holding S_DEVELOP (or the Developer Extensibility role on Cloud).",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md",
       "https://www.itsfullofstars.de/2025/08/fiori-deploy-fails-with-http-403/",
       "Transaction /IWFND/MAINT_SERVICE",
       "Transaction SICF"
     ],
-    "rootCause": "Hai nguyên nhân độc lập, cùng trả về 403:\n\n1. OData service /UI5/ABAP_REPOSITORY_SRV chưa được activate trên hệ thống ABAP. Hệ thống trả 403 thay vì 404 khi service không khả dụng — dễ gây hiểu nhầm thành lỗi phân quyền.\n2. User deploy thiếu authorization object S_DEVELOP trên hệ thống backend.\n\nChưa xác minh trên hệ thống của FPT IS — thông tin từ tài liệu SAP-samples và blog cộng đồng.",
-    "severity": "Blocker",
-    "solutions": [
-      {
-        "body": "1. Transaction: /n/IWFND/MAINT_SERVICE\n2. System Alias: LOCAL\n3. Technical Service Name: /UI5/*\n4. Get Services → chọn /UI5/ABAP_REPOSITORY_SRV → Add\n5. Gán package ($TMP nếu chỉ dùng cho DEV, hoặc package transportable)\n\nSau khi activate, service xuất hiện trong SICF tại:\n  /sap/opu/odata/ui5/abap_repository_srv\n\nKhông áp dụng cho S/4HANA Public Cloud — ở đó service đã có sẵn, xem cách 2.",
-        "label": "Activate service qua /IWFND/MAINT_SERVICE (hệ thống on-premise)",
-        "recommended": true
-      },
-      {
-        "body": "Nhờ Basis cấp authorization object S_DEVELOP trên hệ thống backend.\n\nTrên S/4HANA Public Cloud, tương đương là Business Role chứa catalog Developer Extensibility — kiểm tra qua app Maintain Business Roles.",
-        "label": "Cấp S_DEVELOP cho user deploy"
-      },
-      {
-        "body": "Mở trực tiếp trên trình duyệt sau khi đăng nhập:\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/?$format=json\n\n- 403 với cả user admin → service chưa activate\n- 403 chỉ với user của bạn → thiếu quyền",
-        "label": "Phân biệt 403 do service với 403 do quyền"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy dừng ngay từ đầu:\n\n  Error: request failed with status code 403.\n\nKhông vào được giai đoạn upload file.",
-    "title": "HTTP 403 khi deploy — service /UI5/ABAP_REPOSITORY_SRV chưa activate hoặc thiếu S_DEVELOP",
+    "createdAt": "2026-09-17T10:00:00.000Z",
     "updatedAt": "2026-09-17T10:00:00.000Z",
-    "verified": false,
     "id": "http-403-repository-srv"
   },
   {
-    "createdAt": "2026-09-16T10:00:00.000Z",
+    "title": "Deploy fails with \"can only be deployed to the previous package\" even though the package in ui5-deploy.yaml is correct",
     "module": "SAP Fiori / UI5",
+    "severity": "Blocker",
+    "status": "Investigating",
+    "verified": true,
     "msgKeys": [
       "/UI2/UI5_REP_LOAD-039",
       "/UI2/UI5_REP_LOAD-031",
@@ -50,707 +53,704 @@
       "HTTP 400",
       "CA-UI5-ABA-SAR"
     ],
-    "prevention": "Trước khi undeploy một app có crossNavigation, kiểm tra LADI của nó nằm ở package và transport nào — và release transport chứa lệnh xoá trước khi deploy lại.\n\nThống nhất trong team: mỗi app chỉ một người deploy, dùng transport của chính mình. Nhiều người deploy cùng một app bằng các transport khác nhau là nguồn gốc của loại xung đột này.\n\nĐặt app.name và package theo quy ước cố định ngay từ lần deploy đầu — cả hai đều không đổi được sau đó.",
+    "symptom": "`npm run deploy` fails with HTTP 400. The BSP upload phase runs fine; the failure lands in the Application Index step:\n\n  Updating existing SAPUI5 ABAP repository ZQM04\n  * Updating the Application Index *\n  error Error updating LADIs for UI5 repository ZQM04, package ZQM04, transport HL8Kxxxxxx\n  info  Inbound ZQM04-display was converted to LADI ZQM04_UI5R\n  error SAPUI5 application can only be deployed to the previous package ZQM\n\nThe giveaway: changing `package` in ui5-deploy.yaml does not change the message, and neither does changing the transport.",
+    "rootCause": "The conflict is not on the BSP application. It is on the LADI (Launchpad App Descriptor Item) generated from the `crossNavigation` block in manifest.json.\n\nThe LADI name derives from the BSP repository name, not from the semantic object: repository `ZQM04` produces LADI `ZQM04_UI5R`. When a LADI of that name already exists — or once existed and was undeployed — under a different package, the Application Index step refuses to write it into the new package.\n\nIf the earlier deletion of that LADI sits in a transport that has not been released, the old package assignment is still recorded in the object directory, so the system keeps reading back the old package.",
+    "solutions": [
+      {
+        "label": "Remove crossNavigation from manifest.json to unblock the deploy",
+        "recommended": true,
+        "body": "Verified: the deploy succeeded immediately after removing this block.\n\nComment out or delete `crossNavigation` in webapp/manifest.json, then run `npm run deploy`. With no inbound there is no LADI to generate, so the Application Index step has nothing to conflict on.\n\nThe app is reachable at its direct URL:\n  https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html\n\nTrade-off: no tile on the Fiori Launchpad. Use this when you need to ship today."
+      },
+      {
+        "label": "Delete the stale LADI in ADT, then restore crossNavigation",
+        "body": "Not verified on this system.\n\n1. ADT (Eclipse) -> Ctrl+Shift+A -> type <APPNAME>_UI5R\n2. Note its Package and Transport\n3. Delete -> assign to your transport -> Activate\n4. Restore crossNavigation in manifest.json\n5. npm run deploy\n\nRequires delete authorization on the object (Developer Extensibility role). If the LADI belongs to someone else's transport and that transport is not released, you cannot delete it — the transport owner has to release it or delete the object themselves.\n\nNote: SAP Community reports that deleting a LADI by hand in Eclipse is blocked on S/4HANA Public Cloud (message along the lines of \"SAP GUI is not supported in project\"). If you hit that, go to solution 5."
+      },
+      {
+        "label": "Release the transport that carries the LADI deletion",
+        "body": "Not verified.\n\nApplies when the LADI was undeployed but the deletion still sits in an unreleased transport. Find that transport in the Transport Organizer, release it through the \"Export Software Collection\" app, then deploy again.\n\nWarning: releasing pushes every object in that transport to the next system. Review its contents first, especially if the transport belongs to someone else."
+      },
+      {
+        "label": "Rename the BSP app so a fresh LADI is generated",
+        "body": "Not verified.\n\nChange `app.name` in ui5-deploy.yaml (e.g. ZQM04 -> ZQM04A). That yields a new LADI `ZQM04A_UI5R` which does not collide with the old object. Keep crossNavigation as it is.\n\nTrade-off: the app URL changes, the Business Catalog and Business Role assignments have to be redone, and the old app is left behind as clutter. Use this only when you have no ADT delete rights and cannot reach the transport owner."
+      },
+      {
+        "label": "Open an SAP incident under component CA-FLP-ABA-DT",
+        "body": "Outcome not verified.\n\nThis has been reported on SAP Community: redeploying a Fiori app a second time to S/4HANA Cloud hits a LADI error, and manual deletion is blocked. That thread has no resolution — the only recommendation given is to open an incident with SAP.\n\nComponent: CA-FLP-ABA-DT\n\nAttach to the ticket:\n- the full deploy log (run with log: 5)\n- repository name, package, transport\n- the Transaction ID from the Gateway Error Log\n- what you already tried and what happened\n\nUse this when solutions 2 and 3 are both out of reach and you need to keep the app name."
+      }
+    ],
+    "prevention": "Before undeploying an app that has crossNavigation, check which package and transport its LADI belongs to — and release the transport carrying the deletion before deploying again.\n\nAgree a rule in the team: one owner per app, deploying with their own transport. Several people deploying the same app through different transports is exactly how this class of conflict appears.\n\nFix `app.name` and `package` by convention on the very first deploy. Neither can be changed afterwards.",
     "refs": [
       "SAP Note 1797736",
       "SAP support component: CA-FLP-ABA-DT",
       "https://community.sap.com/t5/enterprise-resource-planning-q-a/s-4-hana-cloud-bas-issue-when-fiori-app-is-deployed-a-second-time/qaq-p/12813366",
-      "ADT Feed Reader → SAP Gateway Error Log",
-      "SLG1 client 000, object /UI5/APPIDX (chỉ admin backend)",
+      "ADT Feed Reader -> SAP Gateway Error Log",
+      "SLG1 in client 000, object /UI5/APPIDX (backend admin only)",
       "Object type: Launchpad App Descriptor Item (LADI)"
     ],
-    "rootCause": "Xung đột không nằm ở BSP application mà ở đối tượng LADI (Launchpad App Descriptor Item) sinh ra từ khối crossNavigation trong manifest.json.\n\nTên LADI lấy từ tên BSP repository, không phải từ semanticObject: repository ZQM04 → LADI ZQM04_UI5R. Khi LADI cùng tên đã tồn tại (hoặc từng tồn tại rồi bị undeploy) ở một package khác, bước Application Index từ chối ghi sang package mới.\n\nNếu việc xoá LADI trước đó nằm trong một transport chưa release, record package cũ vẫn còn trong object directory nên hệ thống vẫn đọc ra package cũ.",
-    "severity": "Blocker",
-    "solutions": [
-      {
-        "body": "Đã xác minh: deploy thành công ngay sau khi bỏ khối này.\n\nTạm comment/xoá crossNavigation trong webapp/manifest.json rồi npm run deploy. Không có inbound thì không sinh LADI, bước Application Index không còn gì để xung đột.\n\nApp chạy được qua URL trực tiếp:\n  https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html\n\nĐánh đổi: chưa có tile trên Fiori Launchpad. Dùng khi cần unblock trong ngày.",
-        "label": "Gỡ crossNavigation khỏi manifest.json để deploy ngay",
-        "recommended": true
-      },
-      {
-        "body": "Chưa xác minh trên hệ thống này.\n\n1. ADT (Eclipse) → Ctrl+Shift+A → gõ <APPNAME>_UI5R\n2. Ghi lại Package và Transport của object\n3. Delete → gán vào transport của bạn → Activate\n4. Khôi phục crossNavigation trong manifest.json\n5. npm run deploy\n\nCần quyền xoá object (Developer Extensibility role). Nếu LADI nằm trong transport của người khác và TR đó chưa release, bạn sẽ không xoá được — phải nhờ chủ TR release hoặc tự xoá.\n\nLưu ý: có báo cáo trên SAP Community rằng thao tác xoá LADI thủ công trong Eclipse bị chặn trên S/4HANA Public Cloud (thông báo đại ý \"SAP GUI is not supported in project\"). Nếu gặp, chuyển sang cách C5.",
-        "label": "Xoá LADI cũ trong ADT rồi khôi phục crossNavigation"
-      },
-      {
-        "body": "Chưa xác minh.\n\nÁp dụng khi LADI đã bị undeploy nhưng lệnh xoá còn nằm trong TR chưa release. Tìm TR đó trong Transport Organizer, release qua app \"Export Software Collection\", rồi deploy lại.\n\nCảnh báo: release sẽ đẩy toàn bộ object trong TR sang hệ thống tiếp theo. Kiểm tra nội dung TR trước, đặc biệt khi TR thuộc người khác.",
-        "label": "Release transport chứa lệnh xoá LADI"
-      },
-      {
-        "body": "Chưa xác minh.\n\nĐổi app.name trong ui5-deploy.yaml (VD ZQM04 → ZQM04A) → LADI mới ZQM04A_UI5R, không đụng object cũ. Giữ nguyên crossNavigation.\n\nĐánh đổi: URL đổi, phải gán lại Business Catalog / Business Role, và app cũ để lại làm rác trong hệ thống. Chỉ dùng khi không có quyền ADT và không liên hệ được chủ transport.",
-        "label": "Đổi tên BSP app để sinh LADI mới"
-      },
-      {
-        "body": "Chưa xác minh kết quả.\n\nĐây là vấn đề đã được báo cáo trên SAP Community: redeploy lần thứ hai một Fiori app lên S/4HANA Cloud gặp lỗi liên quan LADI, và việc xoá thủ công bị chặn. Thread đó không có lời giải — khuyến nghị duy nhất là mở incident với SAP.\n\nComponent: CA-FLP-ABA-DT\n\nKèm theo khi mở ticket:\n- toàn bộ log deploy (bật log: 5)\n- tên repository, package, transport\n- Transaction ID từ Gateway Error Log\n- các cách đã thử và kết quả\n\nDùng khi C2 và C3 đều không thực hiện được và bạn muốn giữ nguyên tên app.",
-        "label": "Mở SAP incident — component CA-FLP-ABA-DT"
-      }
-    ],
-    "status": "Đang điều tra",
-    "symptom": "npm run deploy thất bại với HTTP 400. Trong log, phần upload BSP chạy bình thường, lỗi rơi đúng ở bước Application Index:\n\n  Updating existing SAPUI5 ABAP repository ZQM04\n  * Updating the Application Index *\n  error Error updating LADIs for UI5 repository ZQM04, package ZQM04, transport HL8Kxxxxxx\n  info  Inbound ZQM04-display was converted to LADI ZQM04_UI5R\n  error SAPUI5 application can only be deployed to the previous package ZQM\n\nĐặc điểm nhận dạng: đổi package trong ui5-deploy.yaml không làm thay đổi thông báo, đổi transport cũng không.",
-    "title": "Deploy Fiori báo \"can only be deployed to the previous package\" dù package trong yaml đã đúng",
+    "createdAt": "2026-09-16T10:00:00.000Z",
     "updatedAt": "2026-09-17T10:20:00.000Z",
-    "verified": true,
     "id": "ladi-package-conflict"
   },
   {
-    "createdAt": "2026-09-17T10:01:00.000Z",
+    "title": "HTTP 502 Bad Gateway: the destination URL includes a service path",
     "module": "Basis / Auth",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "HTTP 502",
       "Bad Gateway",
       "ABAP_REPOSITORY_SRV"
     ],
-    "prevention": "Chuẩn hoá cách khai destination trong tài liệu dự án: URL = hostname, không bao giờ kèm path.",
+    "symptom": "The deploy returns HTTP 502 Bad Gateway. The system is reachable but the response is not valid.",
+    "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the destination's URL field carries a service path, so the final request path ends up duplicated and points nowhere valid.",
+    "solutions": [
+      {
+        "label": "Set the destination URL to the hostname only",
+        "recommended": true,
+        "body": "The destination URL must be:\n  https://<hostname>\n\nNo /sap/opu/odata/... and no other path segment."
+      },
+      {
+        "label": "Inspect the actual request path with DEBUG",
+        "body": "DEBUG=* npm run deploy\n\nThe correct path is:\n  /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV\n\nIf you see that segment twice, or appended after another path, the destination URL is the problem."
+      }
+    ],
+    "prevention": "Standardise how destinations are declared in the project documentation: URL = hostname, never with a path.",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
     ],
-    "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: trường URL của destination bị khai kèm service path, khiến đường dẫn cuối cùng bị lặp đoạn và trỏ sai.",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "URL của destination phải là:\n  https://<hostname>\n\nKhông kèm /sap/opu/odata/... hay bất kỳ path nào.",
-        "label": "Đặt destination URL chỉ gồm hostname",
-        "recommended": true
-      },
-      {
-        "body": "DEBUG=* npm run deploy\n\nĐường dẫn đúng phải là:\n  /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV\n\nNếu thấy đoạn này xuất hiện hai lần hoặc bị nối sau một path khác → đúng là lỗi destination URL.",
-        "label": "Kiểm tra đường dẫn thực tế bằng DEBUG"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy trả về HTTP 502 Bad Gateway. Kết nối tới được hệ thống nhưng phản hồi không hợp lệ.",
-    "title": "HTTP 502 Bad Gateway — destination URL bị khai kèm service path",
+    "createdAt": "2026-09-17T10:01:00.000Z",
     "updatedAt": "2026-09-17T10:01:00.000Z",
-    "verified": false,
     "id": "http-502-destination-url"
   },
   {
-    "createdAt": "2026-09-17T10:03:00.000Z",
+    "title": "HTTP 503: Cloud Connector cannot establish a tunnel to the backend",
     "module": "Integration / OData",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "HTTP 503",
       "Service Unavailable",
       "Cloud Connector"
     ],
-    "prevention": "Khi setup môi trường cho thành viên mới, kiểm tra kết nối Cloud Connector trước khi giao việc deploy.",
+    "symptom": "The deploy returns HTTP 503 with a message along the lines of: Cloud Connector cannot establish secure tunnel to back end.",
+    "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the SAP Cloud Connector cannot reach the on-premise backend system.",
+    "solutions": [
+      {
+        "label": "Check the Cloud Connector state",
+        "recommended": true,
+        "body": "1. Open the Cloud Connector admin UI and confirm the subaccount shows as Connected\n2. Under Cloud To On-Premise, confirm the backend is listed with the right virtual host\n3. Use the Cloud Connector's Check Availability function"
+      },
+      {
+        "label": "Rule out a local firewall or proxy",
+        "body": "A corporate firewall or proxy can block the connection. Try from a different network, or ask IT to open the relevant port."
+      }
+    ],
+    "prevention": "Verify Cloud Connector reachability when setting up a new team member's environment, before handing them deployment work.",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
     ],
-    "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: SAP Cloud Connector không kết nối được tới hệ thống backend on-premise.",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "1. Mở Cloud Connector admin UI, xác nhận subaccount đang Connected\n2. Kiểm tra Cloud To On-Premise → hệ thống backend có trong danh sách và đúng virtual host\n3. Dùng chức năng Check Availability của Cloud Connector",
-        "label": "Kiểm tra trạng thái Cloud Connector",
-        "recommended": true
-      },
-      {
-        "body": "Tường lửa hoặc proxy của công ty có thể chặn kết nối. Thử từ mạng khác hoặc nhờ IT mở port tương ứng.",
-        "label": "Loại trừ firewall / proxy của máy local"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy trả HTTP 503 với thông điệp đại ý: Cloud Connector cannot establish secure tunnel to back end.",
-    "title": "HTTP 503 — Cloud Connector không dựng được tunnel tới backend",
+    "createdAt": "2026-09-17T10:03:00.000Z",
     "updatedAt": "2026-09-17T10:03:00.000Z",
-    "verified": false,
     "id": "http-503-cloud-connector"
   },
   {
-    "createdAt": "2026-09-17T08:45:00.000Z",
+    "title": "App deploys fine but cannot reach its OData service",
     "module": "Integration / OData",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "404",
       "403",
       "Communication Arrangement"
     ],
-    "prevention": "Tách rõ cấu hình mock (ui5-mock.yaml) và cấu hình thật. Trước khi bàn giao, luôn test app trên tenant thật bằng tài khoản của người dùng cuối, không phải tài khoản developer.",
-    "refs": [
-      "Fiori app: Communication Arrangements",
-      "manifest.json → sap.app.dataSources"
-    ],
-    "rootCause": "Chưa xác minh. Khả năng thường gặp:\n- Service chưa được publish/activate trên tenant\n- Thiếu Communication Arrangement (với service tự phát triển trên Public Cloud)\n- User thiếu authorization cho service\n- dataSource trong manifest.json trỏ sai uri",
-    "severity": "Cao",
+    "symptom": "The app renders but shows no data. The network tab reports 404 or 403 on /sap/opu/odata/...\n\nIt works locally (npm start) because the request goes through the ui5 middleware proxy.",
+    "rootCause": "Not verified. Common possibilities:\n- the service is not published/activated on the tenant\n- a Communication Arrangement is missing (for custom services on Public Cloud)\n- the user lacks authorization for the service\n- the `dataSource` uri in manifest.json points somewhere wrong",
     "solutions": [
       {
-        "body": "Lấy uri từ sap.app.dataSources trong manifest.json, ghép với host tenant và mở trực tiếp sau khi đã đăng nhập.\n\n- 404 → service chưa tồn tại / chưa activate\n- 403 → service có nhưng user thiếu quyền\n- 200 → vấn đề nằm ở phía app, kiểm tra manifest",
-        "label": "Gọi thẳng service URL trên trình duyệt",
-        "recommended": true
+        "label": "Call the service URL directly in the browser",
+        "recommended": true,
+        "body": "Take the uri from sap.app.dataSources in manifest.json, prepend the tenant host, and open it after signing in.\n\n- 404 -> the service does not exist or is not activated\n- 403 -> the service exists but the user lacks authorization\n- 200 -> the problem is on the app side; check the manifest"
       },
       {
-        "body": "Chưa xác minh cho trường hợp cụ thể của bạn. Trên S/4HANA Public Cloud, service expose ra ngoài thường cần Communication Scenario + Communication Arrangement tương ứng. Kiểm tra qua app Communication Arrangements.",
-        "label": "Kiểm tra Communication Arrangement"
+        "label": "Check the Communication Arrangement",
+        "body": "Not verified for your specific case. On S/4HANA Public Cloud, exposing a service usually requires a matching Communication Scenario and Communication Arrangement. Check via the Communication Arrangements app."
       },
       {
-        "body": "Mở manifest.json của bản đã deploy (qua URL app) và so với bản trong repo. Nếu uri khác nhau, build đang dùng cấu hình mock hoặc dist cũ.",
-        "label": "Đối chiếu manifest local vs deployed"
+        "label": "Diff the deployed manifest against the repo",
+        "body": "Open the manifest.json of the deployed app (through the app URL) and compare it with the one in the repository. Different uris mean the build used a mock configuration or a stale dist folder."
       }
     ],
-    "status": "Mở",
-    "symptom": "App load được giao diện nhưng không có dữ liệu. Network tab báo 404 hoặc 403 trên đường dẫn /sap/opu/odata/....\n\nChạy local (npm start) thì bình thường vì đi qua proxy của ui5 middleware.",
-    "title": "App deploy xong nhưng không gọi được OData service",
+    "prevention": "Keep the mock configuration (ui5-mock.yaml) clearly separate from the real one. Before handover, always test the app on the real tenant with an end-user account, not a developer account.",
+    "refs": [
+      "Fiori app: Communication Arrangements",
+      "manifest.json -> sap.app.dataSources"
+    ],
+    "createdAt": "2026-09-17T08:45:00.000Z",
     "updatedAt": "2026-09-17T09:15:00.000Z",
-    "verified": false,
     "id": "odata-service-not-reachable"
   },
   {
-    "createdAt": "2026-09-17T08:10:00.000Z",
+    "title": "Package is not found on ABAP system when deploying a new app",
     "module": "ABAP / Extensibility",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "Package is found on ABAP system (fail)"
     ],
-    "prevention": "Thống nhất cây package cho từng module nghiệp vụ ngay đầu dự án (ZQM, ZMM, ZSD…) và ghi vào tài liệu kỹ thuật. Tránh tạo package theo từng app — sinh ra rất nhiều package rỗng và làm phức tạp việc gom transport.",
-    "refs": [
-      "ADT → New → ABAP Package"
-    ],
-    "rootCause": "Chưa xác minh. Khả năng: package chưa được tạo trong ADT, sai chính tả, hoặc package thuộc software component mà user không có quyền.",
-    "severity": "Cao",
+    "symptom": "The deploy validation phase reports that the package declared in `app.package` of ui5-deploy.yaml does not exist.",
+    "rootCause": "Not verified. Possibilities: the package was never created in ADT, the name is misspelled, or the package belongs to a software component the user has no rights on.",
     "solutions": [
       {
-        "body": "ADT → chọn package cha (VD ZQM) → New → ABAP Package → đặt tên, gán Software Component và Transport Layer theo chuẩn của dự án.\n\nTrên S/4HANA Public Cloud, package phải nằm trong structure package cho phép Developer Extensibility.",
-        "label": "Tạo package trong ADT trước khi deploy",
-        "recommended": true
+        "label": "Create the package in ADT before deploying",
+        "recommended": true,
+        "body": "ADT -> select the parent package (e.g. ZQM) -> New -> ABAP Package -> set the name, Software Component and Transport Layer per project standard.\n\nOn S/4HANA Public Cloud the package must sit under a structure package that permits Developer Extensibility."
       },
       {
-        "body": "Nếu không cần package riêng cho từng app, khai package cha (VD ZQM) trong ui5-deploy.yaml. Lưu ý: package của một BSP app không đổi được sau lần deploy đầu tiên.",
-        "label": "Dùng package cha có sẵn"
+        "label": "Use an existing parent package",
+        "body": "If you do not need a dedicated package per app, declare the parent package (e.g. ZQM) in ui5-deploy.yaml.\n\nNote: the package of a BSP app cannot be changed after the first deploy."
       }
     ],
-    "status": "Mở",
-    "symptom": "Bước validate của deploy báo không tìm thấy package khai trong app.package của ui5-deploy.yaml.",
-    "title": "Package is not found on ABAP system khi deploy app mới",
+    "prevention": "Agree the package tree per business module at project start (ZQM, ZMM, ZSD...) and write it into the technical design. Avoid one package per app — it produces many near-empty packages and complicates transport bundling.",
+    "refs": [
+      "ADT -> New -> ABAP Package"
+    ],
+    "createdAt": "2026-09-17T08:10:00.000Z",
     "updatedAt": "2026-09-17T09:09:00.000Z",
-    "verified": false,
     "id": "package-not-found"
   },
   {
-    "createdAt": "2026-09-17T08:30:00.000Z",
+    "title": "Deploy to S/4HANA Public Cloud fails at authentication (reentranceTicket)",
     "module": "Basis / Auth",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "401",
       "403",
       "reentranceTicket",
       "destination"
     ],
-    "prevention": "Ghi rõ trong README của project: môi trường nào dùng destination, môi trường nào dùng url, và danh sách role cần có để deploy.",
+    "symptom": "The deploy stops before the upload phase, or the browser opens and never returns, or it reports 401/403.",
+    "rootCause": "Not verified. Possibilities: an expired session, a misconfigured BTP destination, declaring both `destination` and `url` so the target is ambiguous, or the business user missing the Developer Extensibility role.",
+    "solutions": [
+      {
+        "label": "Declare one target source, not two",
+        "recommended": true,
+        "body": "The deploy tooling prefers `destination` over `url`. For local development in VS Code with reentranceTicket you usually only need:\n\n  target:\n    url: https://<tenant>.s4hana.cloud.sap\n    authenticationType: reentranceTicket\n\nUse `destination` when running through BTP or CI. Declaring both makes debugging ambiguous."
+      },
+      {
+        "label": "Check the business user's role",
+        "body": "The deploying user needs a Business Role containing the Developer Extensibility catalog (related to SAP_CORE_BC_EXT_TST). Ask an admin to check via the Maintain Business Roles app."
+      },
+      {
+        "label": "Sign in to the tenant before deploying",
+        "body": "Open the tenant in a browser and sign in first, so the reentrance ticket has a valid session to pick up."
+      }
+    ],
+    "prevention": "State it plainly in the project README: which environment uses `destination`, which uses `url`, and which roles are required to deploy.",
     "refs": [
       "SAP BTP Destination configuration",
       "Fiori app: Maintain Business Roles"
     ],
-    "rootCause": "Chưa xác minh. Khả năng: phiên đăng nhập hết hạn, destination trong BTP sai cấu hình, khai cả destination lẫn url gây nhầm lẫn target, hoặc business user thiếu role Developer Extensibility.",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "Deploy tooling ưu tiên destination hơn url. Khi phát triển local trong VS Code với reentranceTicket, thường chỉ cần url:\n\n  target:\n    url: https://<tenant>.s4hana.cloud.sap\n    authenticationType: reentranceTicket\n\nKhi chạy qua BTP/CI thì dùng destination. Khai cả hai dễ gây nhầm lẫn khi debug.",
-        "label": "Kiểm tra target: chỉ khai một nguồn",
-        "recommended": true
-      },
-      {
-        "body": "User deploy cần Business Role chứa catalog Developer Extensibility (liên quan SAP_CORE_BC_EXT_TST). Nhờ admin kiểm tra qua app Maintain Business Roles.",
-        "label": "Kiểm tra role của business user"
-      },
-      {
-        "body": "Mở tenant trong trình duyệt và đăng nhập trước, sau đó chạy deploy để reentrance ticket lấy được phiên hợp lệ.",
-        "label": "Đăng nhập lại tenant trước khi deploy"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy dừng trước khi vào giai đoạn upload, hoặc trình duyệt mở ra rồi không quay về được, hoặc báo 401/403.",
-    "title": "Deploy lên S/4HANA Public Cloud fail ở bước xác thực (reentranceTicket)",
+    "createdAt": "2026-09-17T08:30:00.000Z",
     "updatedAt": "2026-09-17T09:12:00.000Z",
-    "verified": false,
     "id": "reentrance-ticket-auth"
   },
   {
-    "createdAt": "2026-09-17T10:06:00.000Z",
+    "title": "SAPUI5 ABAP Repository with name Z... already exists",
     "module": "SAP Fiori / UI5",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "already exists",
       "Repositories"
     ],
-    "prevention": "Lập bảng đăng ký tên app của team (tên — package — chủ sở hữu — môi trường) và kiểm tra trước khi đặt tên app mới. Đặt tiền tố theo module: ZQM01, ZQM02…",
+    "symptom": "The first deploy of an app reports that a repository with that name already exists on the system, even though you have never deployed this app.",
+    "rootCause": "Not verified. BSP repository names are unique system-wide. Likely causes: a colleague already deployed an app under the same name, or an app left over from an earlier project.\n\nTell it apart from the LADI package conflict: this one blocks at repository creation (POST), while the LADI error blocks at the Application Index step after the upload has already completed.",
+    "solutions": [
+      {
+        "label": "Check the existing repository on the system",
+        "recommended": true,
+        "body": "Open this in the browser after signing in:\n\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/Repositories('<APPNAME>')?$format=json\n\nThe response gives Package, Description and who created it. This is the only reliable source — do not go by memory."
+      },
+      {
+        "label": "Rename your app",
+        "body": "If the existing app is still in use, change `app.name` in ui5-deploy.yaml to a name that is not taken."
+      },
+      {
+        "label": "Take over the existing app (if it really is yours)",
+        "body": "Keep the name and declare the package that repository actually belongs to — the deploy then switches from create to update mode.\n\nNote: the package of an existing repository cannot be changed."
+      }
+    ],
+    "prevention": "Keep a team-wide app name register (name — package — owner — environment) and check it before naming a new app. Prefix by module: ZQM01, ZQM02, and so on.",
     "refs": [
       "https://community.sap.com/t5/technology-q-a/bas-gt-deployment-quot-sapui5-abap-repository-with-name-z-already-exists/qaq-p/12593109",
       "OData: /UI5/ABAP_REPOSITORY_SRV/Repositories"
     ],
-    "rootCause": "Chưa xác minh. Tên BSP repository là duy nhất trên toàn hệ thống. Khả năng: đồng nghiệp đã deploy app cùng tên, hoặc app cũ từ dự án trước còn sót lại.\n\nPhân biệt với lỗi LADI package conflict: lỗi này chặn ở bước tạo repository (POST), còn LADI chặn ở bước Application Index sau khi upload đã xong.",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "Mở trên trình duyệt sau khi đăng nhập:\n\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/Repositories('<TEN_APP>')?$format=json\n\nKết quả cho biết Package, Description và ai tạo. Đây là nguồn đáng tin duy nhất — đừng đoán theo trí nhớ.",
-        "label": "Kiểm tra repository hiện có trên hệ thống",
-        "recommended": true
-      },
-      {
-        "body": "Nếu app cũ vẫn đang được dùng, đổi app.name trong ui5-deploy.yaml sang tên chưa tồn tại.",
-        "label": "Đổi tên app"
-      },
-      {
-        "body": "Giữ nguyên tên và khai đúng package mà repository đó đang thuộc về — deploy sẽ chuyển sang chế độ update thay vì create.\n\nLưu ý: package của một repository đã tạo thì không đổi được.",
-        "label": "Tiếp quản app cũ (nếu đúng là app của bạn)"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy lần đầu một app báo repository trùng tên đã tồn tại trên hệ thống, dù bạn chưa từng deploy app này.",
-    "title": "SAPUI5 ABAP Repository with name Z... already exists",
+    "createdAt": "2026-09-17T10:06:00.000Z",
     "updatedAt": "2026-09-17T10:06:00.000Z",
-    "verified": false,
     "id": "repository-already-exists"
   },
   {
-    "createdAt": "2026-09-17T08:20:00.000Z",
+    "title": "Deploy succeeds but no tile appears on the Fiori Launchpad",
     "module": "SAP Fiori / UI5",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [],
-    "prevention": "Đưa 4 bước trên vào Definition of Done của mỗi app Fiori. Deploy thành công không đồng nghĩa với app đã dùng được.",
+    "symptom": "The deploy reports success and the app runs at its direct URL (/sap/bc/ui5_ui5/sap/<app>/index.html), but users do not see a tile in the Launchpad.",
+    "rootCause": "Not fully verified. Deploy only creates the BSP app and the LADI; a visible tile additionally requires the whole assignment chain: LADI -> Business Catalog -> Business Role -> Business User.\n\nTwo common breaks:\n- manifest.json has no crossNavigation, so no LADI is generated\n- the LADI exists but was never added to a catalog or role",
+    "solutions": [
+      {
+        "label": "Walk the assignment chain in order",
+        "recommended": true,
+        "body": "1. Does manifest.json contain sap.app.crossNavigation.inbounds?\n2. Does LADI <APPNAME>_UI5R exist in ADT?\n3. Custom Catalog Extensions app: has the app been added to a Business Catalog?\n4. Maintain Business Roles app: has that catalog been assigned to the user's role?\n\nStop at the first step that fails — later steps are meaningless until it passes."
+      },
+      {
+        "label": "Clear the user's Launchpad cache",
+        "body": "Not verified. If everything is assigned correctly and the tile still does not appear, sign out and back in, or open the Launchpad in a private window to rule out browser caching."
+      }
+    ],
+    "prevention": "Put those four steps in the Definition of Done for every Fiori app. A successful deploy does not mean a usable app.",
     "refs": [
       "Fiori app: Custom Catalog Extensions",
       "Fiori app: Maintain Business Roles"
     ],
-    "rootCause": "Chưa xác minh đầy đủ. Deploy chỉ tạo BSP app và LADI; việc hiển thị tile còn phụ thuộc chuỗi gán quyền: LADI → Business Catalog → Business Role → Business User.\n\nHai khả năng thường gặp:\n- manifest.json không có crossNavigation nên không sinh LADI\n- LADI có nhưng chưa được gán vào catalog/role",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "1. manifest.json có khối sap.app.crossNavigation.inbounds không?\n2. LADI <APPNAME>_UI5R có tồn tại trong ADT không?\n3. Fiori app \"Custom Catalog Extensions\": app đã được thêm vào Business Catalog chưa?\n4. Fiori app \"Maintain Business Roles\": catalog đó đã gán vào role của người dùng chưa?\n\nDừng ở bước đầu tiên fail — các bước sau không có ý nghĩa nếu bước trước chưa xong.",
-        "label": "Kiểm tra chuỗi gán quyền theo thứ tự",
-        "recommended": true
-      },
-      {
-        "body": "Chưa xác minh. Nếu mọi thứ đã gán đúng nhưng tile vẫn chưa hiện, thử đăng xuất/đăng nhập lại hoặc mở Launchpad ở cửa sổ ẩn danh để loại trừ cache trình duyệt.",
-        "label": "Xóa cache Launchpad của người dùng"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy báo thành công, mở URL trực tiếp /sap/bc/ui5_ui5/sap/<app>/index.html thì app chạy, nhưng người dùng không thấy tile trong Launchpad.",
-    "title": "Deploy thành công nhưng không thấy tile trên Fiori Launchpad",
+    "createdAt": "2026-09-17T08:20:00.000Z",
     "updatedAt": "2026-09-17T09:10:00.000Z",
-    "verified": false,
     "id": "tile-missing-after-deploy"
   },
   {
-    "createdAt": "2026-09-17T08:00:00.000Z",
+    "title": "Deploy fails because the transport request is released or belongs to another package",
     "module": "Transport & Release",
+    "severity": "High",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "Transport Request is not found",
       "TR released"
     ],
-    "prevention": "Mỗi developer giữ một Workbench Request riêng cho từng sprint. Ghi mã TR vào README của project để cả team biết app nào đi cùng TR nào.",
+    "symptom": "The deploy stops at the validation phase with a message about the transport request: not found, or not writable.",
+    "rootCause": "Not verified. Common possibilities:\n- the transport has been released and can no longer be written to\n- the transport belongs to a different package than the target\n- the transport belongs to another owner who has not granted write access\n- a Customizing request was used where a Workbench request is required",
+    "solutions": [
+      {
+        "label": "Check the transport status in ADT",
+        "recommended": true,
+        "body": "Window -> Show View -> Transport Organizer -> find the transport number.\n\nConfirm: status = Modifiable, type = Workbench Request, and that you are the owner or have write access."
+      },
+      {
+        "label": "Create a new transport",
+        "body": "If the old transport is released, create a new Workbench Request in ADT and update `app.transport` in ui5-deploy.yaml."
+      },
+      {
+        "label": "Do not borrow someone else's transport",
+        "body": "Your objects end up mixed into their request; when they release it, your unfinished code rides along to QA or PRD. Always use your own transport unless there is an explicit agreement."
+      }
+    ],
+    "prevention": "One Workbench Request per developer per sprint. Record the transport number in the project README so the team knows which app travels in which request.",
     "refs": [
       "ADT Transport Organizer",
       "Fiori app: Export Software Collection (S/4HANA Public Cloud)"
     ],
-    "rootCause": "Chưa xác minh. Các khả năng thường gặp:\n- TR đã released nên không còn ghi được\n- TR thuộc package khác package đích\n- TR thuộc owner khác và không cho phép người khác ghi\n- Dùng TR của Customizing thay vì Workbench request",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "Window → Show View → Transport Organizer → tìm mã TR.\n\nCần xác nhận: status = Modifiable, loại = Workbench Request, owner là bạn hoặc bạn có quyền ghi.",
-        "label": "Kiểm tra trạng thái TR trong ADT",
-        "recommended": true
-      },
-      {
-        "body": "Nếu TR cũ đã released, tạo Workbench Request mới trong ADT và cập nhật app.transport trong ui5-deploy.yaml.",
-        "label": "Tạo transport mới"
-      },
-      {
-        "body": "Object của bạn sẽ trộn vào TR của họ; khi họ release sẽ mang theo code chưa sẵn sàng của bạn sang QA/PRD. Luôn dùng TR của chính mình trừ khi có thoả thuận rõ ràng.",
-        "label": "Không dùng transport của người khác"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy dừng ở bước validate với thông báo liên quan đến transport request: không tìm thấy, hoặc không ghi được vào TR.",
-    "title": "Deploy fail vì transport request đã released hoặc không thuộc package đích",
+    "createdAt": "2026-09-17T08:00:00.000Z",
     "updatedAt": "2026-09-17T09:08:00.000Z",
-    "verified": false,
     "id": "transport-not-modifiable"
   },
   {
-    "createdAt": "2026-09-17T08:40:00.000Z",
+    "title": "undeploy leaves secondary objects behind — the app is gone but the next deploy still conflicts",
     "module": "SAP Fiori / UI5",
+    "severity": "High",
+    "status": "Investigating",
+    "verified": false,
     "msgKeys": [],
-    "prevention": "Coi undeploy là thao tác có hậu quả kéo dài, không phải \"xóa cho sạch rồi làm lại\". Nếu chỉ cần đổi nội dung app, deploy đè thay vì undeploy.\n\nKhi buộc phải undeploy: dùng transport của chính mình, ghi lại mã TR, và release nó trước khi deploy lại cùng tên app.",
+    "symptom": "After `npm run undeploy` the BSP app is gone, yet the next deploy still fails with a package or LADI error naming that same app.",
+    "rootCause": "Not verified. Hypothesis: undeploy removes the BSP repository, but the deletion of secondary objects — the LADI in particular — is recorded in a transport. While that transport stays unreleased, the old record remains in the object directory and collides on the next deploy.",
+    "solutions": [
+      {
+        "label": "Check for leftover objects before deploying again",
+        "recommended": true,
+        "body": "After every undeploy, look in ADT for:\n- BSP application <APPNAME>\n- LADI <APPNAME>_UI5R\n\nNote the package and transport of anything still sitting in a deleted-pending state."
+      },
+      {
+        "label": "Release the transport carrying the deletion before redeploying",
+        "body": "Not verified. Release the transport so the deletion is committed, then deploy again.\n\nReview the transport contents first — it may carry someone else's objects."
+      }
+    ],
+    "prevention": "Treat undeploy as an operation with lasting consequences, not a clean slate. If you only need to change the app content, deploy over it instead.\n\nWhen you must undeploy: use your own transport, write down the number, and release it before deploying the same app name again.",
     "refs": [
       "fiori undeploy --config ui5-deploy.yaml",
       "ADT Transport Organizer"
     ],
-    "rootCause": "Chưa xác minh. Giả thuyết: undeploy xoá BSP repository nhưng lệnh xoá các object phụ (đặc biệt LADI) được ghi vào transport; chừng nào TR đó chưa release, record cũ trong object directory vẫn còn và gây xung đột ở lần deploy tiếp theo.",
-    "severity": "Cao",
-    "solutions": [
-      {
-        "body": "Sau mỗi undeploy, tìm trong ADT:\n- BSP application <APPNAME>\n- LADI <APPNAME>_UI5R\n\nGhi lại package và transport của bất kỳ object nào còn ở trạng thái deleted-pending.",
-        "label": "Kiểm tra object còn sót trước khi deploy lại",
-        "recommended": true
-      },
-      {
-        "body": "Chưa xác minh. Release TR để việc xoá được ghi nhận dứt điểm, rồi mới deploy lại.\n\nKiểm tra nội dung TR trước khi release — có thể chứa object của người khác.",
-        "label": "Release transport chứa lệnh xoá trước khi deploy lại"
-      }
-    ],
-    "status": "Đang điều tra",
-    "symptom": "Sau khi chạy npm run undeploy, BSP app không còn, nhưng lần deploy sau vẫn vướng lỗi liên quan đến package hoặc LADI của chính app đó.",
-    "title": "undeploy không dọn hết — app biến mất nhưng object phụ còn lại",
+    "createdAt": "2026-09-17T08:40:00.000Z",
     "updatedAt": "2026-09-17T09:14:00.000Z",
-    "verified": false,
     "id": "undeploy-behaviour"
   },
   {
-    "createdAt": "2026-09-17T10:02:00.000Z",
+    "title": "HTTP 504 Gateway Timeout when deploying a large app",
     "module": "Basis / Auth",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "HTTP 504",
       "Gateway Timeout",
       "HTML5.Timeout"
     ],
-    "prevention": "Đặt HTML5.Timeout = 60000 ngay khi tạo destination mới, không chờ đến khi gặp lỗi.",
+    "symptom": "The deploy runs for a while and then stops with HTTP 504. Usually with apps that have many files, or on a loaded system.",
+    "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the backend response time exceeds the timeout configured on the destination.",
+    "solutions": [
+      {
+        "label": "Raise HTML5.Timeout on the destination",
+        "recommended": true,
+        "body": "Add or edit the destination property in the BTP cockpit:\n\n  HTML5.Timeout = 60000\n\nMilliseconds. 60000 is the documented minimum; larger apps may need more."
+      },
+      {
+        "label": "Shrink the archive",
+        "body": "Review the `exclude` block in ui5-deploy.yaml — drop /test/, /localService/, mock data and anything else not needed at runtime. The deploy log prints the file count in the archive; use it to compare before and after."
+      }
+    ],
+    "prevention": "Set HTML5.Timeout = 60000 when creating any new destination, rather than waiting to hit the error.",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
     ],
-    "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: thời gian phản hồi của backend vượt quá timeout cấu hình trên destination.",
-    "severity": "Trung bình",
-    "solutions": [
-      {
-        "body": "Thêm hoặc sửa property của destination trong BTP cockpit:\n\n  HTML5.Timeout = 60000\n\nĐơn vị mili giây. 60000 là giá trị tối thiểu được khuyến nghị; app lớn có thể cần cao hơn.",
-        "label": "Tăng HTML5.Timeout trên destination",
-        "recommended": true
-      },
-      {
-        "body": "Kiểm tra khối exclude trong ui5-deploy.yaml — loại /test/, /localService/, mock data và các file không cần thiết. Log deploy in ra số file trong archive, dùng con số đó để đối chiếu.",
-        "label": "Giảm kích thước archive"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy chạy một lúc rồi dừng với HTTP 504. Thường gặp với app có nhiều file hoặc hệ thống đang tải cao.",
-    "title": "HTTP 504 Gateway Timeout khi deploy app lớn",
+    "createdAt": "2026-09-17T10:02:00.000Z",
     "updatedAt": "2026-09-17T10:02:00.000Z",
-    "verified": false,
     "id": "http-504-timeout"
   },
   {
-    "createdAt": "2026-09-17T10:07:00.000Z",
+    "title": "Error in the SAPUI5 repository, which is a local object of the user xxx",
     "module": "Transport & Release",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "local object of the user",
       "$TMP",
       "SAP KBA 3528702"
     ],
-    "prevention": "Cấm dùng $TMP cho bất kỳ app nào sẽ được người khác dùng hoặc chuyển lên QA. Đưa vào code review checklist: kiểm tra app.package trong ui5-deploy.yaml.",
+    "symptom": "Deploying from SAP Business Application Studio or VS Code fails with a message saying the repository is a local object belonging to another user.",
+    "rootCause": "Not verified. Likely: the repository was created earlier in package $TMP (a local object) by a different user. Local objects are bound to the user who created them and cannot be shared.",
+    "solutions": [
+      {
+        "label": "Deploy to a transportable package instead of $TMP",
+        "recommended": true,
+        "body": "$TMP is for personal throwaway experiments only. Anything shared must live in a Z* package with a transport.\n\nNote: once created in $TMP the package cannot be changed — the object has to be deleted and recreated, or a different name used."
+      },
+      {
+        "label": "Ask the owner to delete the local object",
+        "body": "Only the user who created a local object can delete it in ADT. After deletion, deploy again into a transportable package."
+      }
+    ],
+    "prevention": "Ban $TMP for any app another person will use or that will move to QA. Add it to the code review checklist: verify `app.package` in ui5-deploy.yaml.",
     "refs": [
       "SAP KBA 3528702",
       "SAP KBA 3374975"
     ],
-    "rootCause": "Chưa xác minh. Khả năng: repository đã được tạo trước đó vào package $TMP (local object) bởi một user khác. Local object gắn với user tạo ra nó và không chia sẻ được.",
-    "severity": "Trung bình",
-    "solutions": [
-      {
-        "body": "$TMP chỉ dùng để thử nghiệm cá nhân. Mọi app dùng chung phải nằm trong package Z* có transport.\n\nLưu ý: đã tạo ở $TMP rồi thì không đổi package được — phải xoá rồi tạo lại, hoặc dùng tên khác.",
-        "label": "Deploy vào package transportable thay vì $TMP",
-        "recommended": true
-      },
-      {
-        "body": "Chỉ user đã tạo local object mới xoá được nó trong ADT. Sau khi xoá, deploy lại vào package transportable.",
-        "label": "Nhờ chủ sở hữu xoá local object"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy từ SAP Business Application Studio hoặc VS Code báo lỗi đại ý: repository là local object của một user khác.",
-    "title": "Error in the SAPUI5 repository, which is a local object of the user xxx",
+    "createdAt": "2026-09-17T10:07:00.000Z",
     "updatedAt": "2026-09-17T10:07:00.000Z",
-    "verified": false,
     "id": "local-object-user-error"
   },
   {
-    "createdAt": "2026-09-17T10:05:00.000Z",
+    "title": "unable to get local issuer certificate when deploying from VS Code",
     "module": "Basis / Auth",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "unable to get local issuer certificate",
       "SELF_SIGNED_CERT_IN_CHAIN",
       "strictSsl"
     ],
-    "prevention": "Phát file CA nội bộ và hướng dẫn đặt NODE_EXTRA_CA_CERTS trong tài liệu onboarding, thay vì để từng người tự tắt strictSsl.",
+    "symptom": "The deploy fails with a TLS certificate error, typically \"unable to get local issuer certificate\" or \"self signed certificate in certificate chain\".\n\nCommon with on-premise systems using an internal corporate certificate.",
+    "rootCause": "Not verified on our own systems. Node.js does not trust a certificate issued by an internal CA because that CA is not in Node's default trust store.",
+    "solutions": [
+      {
+        "label": "Register the internal CA with Node.js",
+        "recommended": true,
+        "body": "Get the corporate CA file from IT, then:\n\n  export NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem\n  npm run deploy\n\nWindows PowerShell:\n  $env:NODE_EXTRA_CA_CERTS=\"C:\\path\\company-ca.pem\"\n\nThis is the correct fix: TLS verification stays fully in place, you only add a CA you trust."
+      },
+      {
+        "label": "Disable certificate checking (local DEV only)",
+        "body": "In ui5-deploy.yaml:\n\n  configuration:\n    strictSsl: false\n\nDo NOT use this on CI/CD or any shared environment, and do not commit it to the main branch — it switches off server identity verification entirely."
+      }
+    ],
+    "prevention": "Distribute the internal CA file and the NODE_EXTRA_CA_CERTS instruction as part of onboarding, instead of leaving each developer to disable strictSsl on their own.",
     "refs": [
       "https://github.com/SAP/ui5-tooling/issues/646",
       "Node.js NODE_EXTRA_CA_CERTS"
     ],
-    "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Node.js không tin chứng chỉ do CA nội bộ cấp vì CA đó không nằm trong trữc CA mặc định của Node.",
-    "severity": "Trung bình",
-    "solutions": [
-      {
-        "body": "Xin file CA của công ty từ IT, rồi:\n\n  export NODE_EXTRA_CA_CERTS=/đường/dẫn/company-ca.pem\n  npm run deploy\n\nWindows PowerShell:\n  $env:NODE_EXTRA_CA_CERTS=\"C:\\path\\company-ca.pem\"\n\nĐây là cách đúng: vẫn xác thực TLS đầy đủ, chỉ bổ sung CA đáng tin.",
-        "label": "Khai CA nội bộ cho Node.js",
-        "recommended": true
-      },
-      {
-        "body": "Trong ui5-deploy.yaml:\n\n  configuration:\n    strictSsl: false\n\nhoặc CLI: --noConfigUpdate --strictSsl false\n\nKHÔNG dùng trên CI/CD hay môi trường chung, và không commit cấu hình này vào nhánh chính — nó vô hiệu hoá việc xác thực danh tính máy chủ.",
-        "label": "Tắt kiểm tra chứng chỉ (chỉ cho DEV local)"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy fail với lỗi chứng chỉ TLS, thường là \"unable to get local issuer certificate\" hoặc \"self signed certificate in certificate chain\".\n\nHay gặp với hệ thống on-premise dùng chứng chỉ nội bộ của công ty.",
-    "title": "unable to get local issuer certificate khi deploy từ VS Code",
+    "createdAt": "2026-09-17T10:05:00.000Z",
     "updatedAt": "2026-09-17T10:05:00.000Z",
-    "verified": false,
     "id": "self-signed-cert-deploy"
   },
   {
-    "createdAt": "2026-09-17T08:35:00.000Z",
+    "title": "Deploy succeeds but the browser still loads the old version of the app",
     "module": "SAP Fiori / UI5",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "cachebuster",
       "Already up-to-date"
     ],
-    "prevention": "Trước khi báo cho khách hàng rằng bản mới đã lên, tự kiểm tra ở cửa sổ ẩn danh. Trong log deploy, nhìn phần Operations để xác nhận file thực sự đã được ghi.",
-    "refs": [
-      "ui5.yaml → generateCachebusterInfo"
-    ],
-    "rootCause": "Chưa xác minh đầy đủ. Hai tầng có thể gây ra:\n- Build dùng thư mục dist cũ nên archive không chứa thay đổi (log sẽ báo Already up-to-date)\n- Cachebuster / cache trình duyệt giữ bản cũ ở phía client",
-    "severity": "Trung bình",
+    "symptom": "The deploy reports success but the app still shows the old UI or logic. Or the deploy log marks every file \"Already up-to-date\" even though you just changed the code.",
+    "rootCause": "Not fully verified. Two layers can cause it:\n- the build reused a stale dist folder, so the archive never contained the change (the log then says Already up-to-date)\n- cachebuster or browser cache is holding the old version on the client side",
     "solutions": [
       {
-        "body": "Đọc phần * Operations * trong log deploy (cần log: 5 hoặc --verbose):\n\n- Nếu mọi file \"Already up-to-date\" → vấn đề ở build, không phải cache trình duyệt.\n- Nếu có file UPDATE/ADD → upload đã đúng, vấn đề ở phía client.",
-        "label": "Xác định tầng gây lỗi bằng log deploy",
-        "recommended": true
+        "label": "Identify the layer from the deploy log",
+        "recommended": true,
+        "body": "Read the `* Operations *` block (needs log: 5 or --verbose):\n\n- every file \"Already up-to-date\" -> the problem is in the build, not the browser cache\n- files marked UPDATE/ADD -> the upload was correct; the problem is client-side"
       },
       {
-        "body": "npm run build -- --clean-dest\n\nhoặc xoá thủ công thư mục dist rồi build lại.",
-        "label": "Build sạch"
+        "label": "Build clean",
+        "body": "npm run build -- --clean-dest\n\nOr delete the dist folder by hand and rebuild."
       },
       {
-        "body": "Mở app ở cửa sổ ẩn danh, hoặc hard reload (Ctrl+Shift+R). Nếu bản mới hiện ra thì đúng là cache client.\n\nKiểm tra task generateCachebusterInfo có chạy trong ui5.yaml không — deploy-to-abap thường được đặt afterTask: generateCachebusterInfo chính vì lý do này.",
-        "label": "Kiểm tra phía trình duyệt"
+        "label": "Check the browser side",
+        "body": "Open the app in a private window, or hard reload (Ctrl+Shift+R). If the new version appears, it was the client cache.\n\nVerify that the generateCachebusterInfo task runs in ui5.yaml — deploy-to-abap is normally placed with afterTask: generateCachebusterInfo for exactly this reason."
       }
     ],
-    "status": "Mở",
-    "symptom": "Deploy báo thành công nhưng mở app vẫn thấy giao diện/logic cũ. Hoặc log deploy báo tất cả file \"Already up-to-date\" dù vừa sửa code.",
-    "title": "Deploy xong nhưng trình duyệt vẫn load bản cũ của app",
+    "prevention": "Before telling a client the new version is live, check it yourself in a private window. In the deploy log, read the Operations block to confirm files were actually written.",
+    "refs": [
+      "ui5.yaml -> generateCachebusterInfo"
+    ],
+    "createdAt": "2026-09-17T08:35:00.000Z",
     "updatedAt": "2026-09-17T09:13:00.000Z",
-    "verified": false,
     "id": "stale-app-after-deploy"
   },
   {
-    "createdAt": "2026-09-16T11:00:00.000Z",
+    "title": "deploy --testMode reports \"no problems\" but the real deploy still fails with 400",
     "module": "SAP Fiori / UI5",
+    "severity": "Medium",
+    "status": "Resolved",
+    "verified": true,
     "msgKeys": [
       "HTTP 400",
       "testMode"
     ],
-    "prevention": "Khi deploy một app lần đầu hoặc sau khi đổi manifest, chạy deploy thật trên môi trường DEV trước, đừng dựa vào test mode để quyết định lên QA.",
+    "symptom": "`npm run deploy-test` reports:\n\n  OK SAPUI5 ABAP Repository follows the rules of creating BSP application\n  OK Package is found on ABAP system\n  OK Transport Request is found on ABAP system\n  Test run has indicated no problems\n\nBut `npm run deploy` right afterwards still fails with status 400.",
+    "rootCause": "Test mode only runs configuration validation and simulates the file upload. It does NOT run the \"Updating the Application Index\" step and does not write LADIs — which is exactly where most real deployment failures occur.\n\nThe deploy tooling log says so itself: \"A successful TestMode execution does not necessarily mean that your upload will be successful.\"",
+    "solutions": [
+      {
+        "label": "Know what test mode actually covers",
+        "recommended": true,
+        "body": "Test mode checks: yaml syntax, package exists, transport exists, connectivity and authentication, archive structure.\n\nTest mode does NOT check: writing to the transport, the Application Index, LADIs, repository registration, package conflicts on secondary objects.\n\nTreat it as a fast pre-filter, not a guarantee."
+      },
+      {
+        "label": "Read the log at the right phase when a real deploy fails",
+        "body": "Skip the header and the Parameters block. Find the line `* Updating the Application Index *` — the real error is always right after it.\n\nThe `info ... message_text ...` lines are just links to look up message text, not errors."
+      }
+    ],
+    "prevention": "When deploying an app for the first time, or after changing the manifest, run a real deploy on DEV. Never let a passing test mode decide a promotion to QA.",
     "refs": [
       "open-ux-tools/packages/deploy-tooling README"
     ],
-    "rootCause": "Test mode chỉ chạy phần validate cấu hình và mô phỏng upload file. Nó KHÔNG chạy bước \"Updating the Application Index\" và không ghi LADI — đúng chỗ phần lớn lỗi deploy thật phát sinh.\n\nChính log của deploy tooling đã nói: \"A successful TestMode execution does not necessarily mean that your upload will be successful.\"",
-    "severity": "Trung bình",
-    "solutions": [
-      {
-        "body": "Test mode kiểm được: cú pháp yaml, package tồn tại, transport tồn tại, kết nối/auth, cấu trúc archive.\n\nTest mode KHÔNG kiểm được: ghi transport, Application Index, LADI, đăng ký repository, xung đột package của object phụ.\n\nDùng test mode như một bước lọc nhanh trước khi deploy thật, không coi nó là bảo chứng.",
-        "label": "Hiểu đúng phạm vi test mode",
-        "recommended": true
-      },
-      {
-        "body": "Bỏ qua phần header và Parameters. Tìm dòng bắt đầu bằng \"* Updating the Application Index *\" — lỗi thật luôn nằm ngay sau đó.\n\nCác dòng \"info ... message_text ...\" chỉ là link tra nội dung message, không phải lỗi.",
-        "label": "Đọc log ở đúng giai đoạn khi deploy thật fail"
-      }
-    ],
-    "status": "Đã giải quyết",
-    "symptom": "npm run deploy-test cho kết quả:\n\n  √ SAPUI5 ABAP Repository follows the rules of creating BSP application\n  √ Package is found on ABAP system\n  √ Transport Request is found on ABAP system\n  Test run has indicated no problems\n\nNhưng npm run deploy ngay sau đó vẫn fail với status 400.",
-    "title": "deploy --testMode báo \"no problems\" nhưng deploy thật vẫn fail 400",
+    "createdAt": "2026-09-16T11:00:00.000Z",
     "updatedAt": "2026-09-17T09:05:00.000Z",
-    "verified": true,
     "id": "testmode-pass-deploy-fail"
   },
   {
-    "createdAt": "2026-09-17T08:50:00.000Z",
+    "title": "prebuild fails: tsc --noEmit reports type errors after updating @sapui5/types",
     "module": "SAP Fiori / UI5",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "tsc --noEmit",
       "prebuild"
     ],
-    "prevention": "Commit package-lock.json vào git và dùng npm ci trên máy build/CI. Ghim version cho @sapui5/types và @ui5/cli thay vì dùng dải ^ hoặc ~ — các package này thay định nghĩa type giữa các bản patch.",
-    "refs": [
-      "package.json → devDependencies",
-      "tsconfig.json"
-    ],
-    "rootCause": "Chưa xác minh. Khả năng: @sapui5/types dùng dải version (~1.142.0) nên npm install kéo bản patch mới có định nghĩa type khác, hoặc version types lệch với minUI5Version của app.",
-    "severity": "Trung bình",
+    "symptom": "`npm run deploy` stops at the prebuild step with TypeScript errors, although the code has not changed — you only ran npm install or updated a dependency.",
+    "rootCause": "Not verified. Likely: @sapui5/types uses a version range (~1.142.0), so npm install pulled a newer patch with different type definitions; or the types version drifted away from the app's minUI5Version.",
     "solutions": [
       {
-        "body": "Log deploy in ra minUI5Version (VD 1.142.12). So với @sapui5/types trong package.json.\n\nGhim version cụ thể để tránh trôi:\n  \"@sapui5/types\": \"1.142.0\"\n\nRồi: rm -rf node_modules package-lock.json && npm install",
-        "label": "Đối chiếu version types với minUI5Version",
-        "recommended": true
+        "label": "Compare the types version against minUI5Version",
+        "recommended": true,
+        "body": "The deploy log prints minUI5Version (e.g. 1.142.12). Compare it with @sapui5/types in package.json.\n\nPin an exact version to stop the drift:\n  \"@sapui5/types\": \"1.142.0\"\n\nThen: rm -rf node_modules package-lock.json && npm install"
       },
       {
-        "body": "Nếu package-lock.json còn trong git và trước đó build được: git checkout package-lock.json && npm ci\n\nnpm ci cài đúng version trong lock, không tự nâng.",
-        "label": "Khôi phục từ package-lock.json"
+        "label": "Restore from package-lock.json",
+        "body": "If package-lock.json is in git and the build worked before:\n  git checkout package-lock.json && npm ci\n\nnpm ci installs exactly what the lock file says and never upgrades."
       },
       {
-        "body": "npm run ts-typecheck\n\nChạy riêng để đọc danh sách lỗi đầy đủ thay vì bị cắt trong log deploy.",
-        "label": "Xem lỗi type cụ thể"
+        "label": "Read the actual type errors",
+        "body": "npm run ts-typecheck\n\nRun it on its own to see the full error list instead of a truncated slice in the deploy log."
       }
     ],
-    "status": "Mở",
-    "symptom": "npm run deploy dừng ngay ở bước prebuild với lỗi TypeScript, trong khi code không đổi gì — chỉ vừa npm install hoặc cập nhật dependency.",
-    "title": "prebuild fail: tsc --noEmit báo lỗi type sau khi cập nhật @sapui5/types",
+    "prevention": "Commit package-lock.json and use npm ci on build machines and CI. Pin exact versions for @sapui5/types and @ui5/cli rather than using ^ or ~ ranges — these packages change type definitions between patch releases.",
+    "refs": [
+      "package.json -> devDependencies",
+      "tsconfig.json"
+    ],
+    "createdAt": "2026-09-17T08:50:00.000Z",
     "updatedAt": "2026-09-17T09:16:00.000Z",
-    "verified": false,
     "id": "ts-typecheck-fail"
   },
   {
-    "createdAt": "2026-09-17T10:04:00.000Z",
+    "title": "Files silently skipped: \"Not uploaded as binary/text type is unknown\"",
     "module": "SAP Fiori / UI5",
+    "severity": "Medium",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "type is unknown",
       ".Ui5RepositoryTextFiles",
       ".Ui5RepositoryBinaryFiles"
     ],
-    "prevention": "Khi thêm loại asset mới vào project (font, icon, file cấu hình), kiểm tra nó có lên hệ thống không thay vì chỉ tin vào dòng \"Deployment successful\".",
+    "symptom": "The deploy succeeds but some files never reach the system. The log lists them with a note along the lines of \"Not uploaded as binary/text type is unknown\".\n\nResult: a missing font, a missing config file, or a 404 on one specific resource at runtime.",
+    "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the file extension is not in the SAPUI5 ABAP Repository's default recognition list, so the upload skips it.",
+    "solutions": [
+      {
+        "label": "Declare the extensions in the recognition lists",
+        "recommended": true,
+        "body": "Create these files in the webapp/ folder:\n\n  .Ui5RepositoryTextFiles     - for text files (.json, .xml, .properties, .svg...)\n  .Ui5RepositoryBinaryFiles   - for binary files (.woff2, .png, .pdf...)\n\nOne extension per line. Then build and deploy again."
+      },
+      {
+        "label": "Compare the archive contents against the operations list",
+        "body": "Set log: 5 in ui5-deploy.yaml. Look at the \"Adding <file>\" lines when the archive is created and the `* Operations *` block on upload. A file present in the archive but absent from Operations is the one being skipped."
+      }
+    ],
+    "prevention": "When adding a new asset type to a project (fonts, icons, config files), verify it actually reached the system rather than trusting the \"Deployment successful\" line.",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
     ],
-    "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: phần đuôi file không nằm trong danh sách nhận dạng mặc định của SAPUI5 ABAP Repository nên upload bỏ qua.",
-    "severity": "Trung bình",
-    "solutions": [
-      {
-        "body": "Tạo file trong thư mục webapp/:\n\n  .Ui5RepositoryTextFiles     — cho file dạng text (.json, .xml, .properties, .svg…)\n  .Ui5RepositoryBinaryFiles   — cho file nhị phân (.woff2, .png, .pdf…)\n\nMỗi dòng một đuôi file. Sau đó build và deploy lại.",
-        "label": "Khai đuôi file vào danh sách nhận dạng",
-        "recommended": true
-      },
-      {
-        "body": "Bật log: 5 trong ui5-deploy.yaml, xem phần \"Adding <file>\" khi tạo archive và phần * Operations * khi upload. File có trong archive nhưng không có trong Operations chính là file bị bỏ qua.",
-        "label": "Đối chiếu danh sách file trong archive"
-      }
-    ],
-    "status": "Mở",
-    "symptom": "Deploy thành công nhưng một số file không lên hệ thống. Log deploy ghi file đó với ghi chú đại ý \"Not uploaded as binary/text type is unknown\".\n\nHệ quả: app chạy thiếu font, thiếu file cấu hình, hoặc lỗi 404 trên một resource cụ thể.",
-    "title": "File không được upload: \"Not uploaded as binary/text type is unknown\"",
+    "createdAt": "2026-09-17T10:04:00.000Z",
     "updatedAt": "2026-09-17T10:04:00.000Z",
-    "verified": false,
     "id": "unknown-file-type-upload"
   },
   {
-    "createdAt": "2026-09-17T10:08:00.000Z",
+    "title": "How to enable network-level debugging on a deploy",
     "module": "SAP Fiori / UI5",
+    "severity": "Low",
+    "status": "Resolved",
+    "verified": false,
     "msgKeys": [
       "DEBUG",
       "NODE_DEBUG"
     ],
-    "prevention": "Lưu file deploy-debug.log kèm theo mỗi lần mở ticket cho Basis hoặc SAP — rút ngắn đáng kể thời gian qua lại.\n\nLưu ý bảo mật: log này có thể chứa token hoặc cookie phiên. Rà soát trước khi gửi ra ngoài, không commit vào git.",
+    "symptom": "A deploy fails and it is unclear where the request actually goes, what headers it carries, or how it redirects — especially when you suspect the destination, a proxy or a certificate.",
+    "rootCause": "The deploy tooling's default log does not cover the HTTP layer. Node.js debugging has to be switched on.",
+    "solutions": [
+      {
+        "label": "Mac / Linux",
+        "recommended": true,
+        "body": "DEBUG=* NODE_DEBUG=http,https,net,tls npm run deploy 2>&1 | tee deploy-debug.log\n\nThen search the file for:\n- the actual request path (it must contain /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV)\n- the returned status code\n- any TLS error"
+      },
+      {
+        "label": "Windows PowerShell",
+        "body": "$env:DEBUG=\"*\"; $env:NODE_DEBUG=\"http,https,net,tls\"; npm run deploy 2>&1 | Tee-Object deploy-debug.log"
+      }
+    ],
+    "prevention": "Attach deploy-debug.log whenever you open a ticket with Basis or SAP — it cuts the round trips considerably.\n\nSecurity note: this log can contain tokens or session cookies. Review it before sending it anywhere, and never commit it.",
     "refs": [
       "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
     ],
-    "rootCause": "Log mặc định của deploy tooling không in tầng HTTP. Cần bật debug của Node.js.",
-    "severity": "Thấp",
-    "solutions": [
-      {
-        "body": "DEBUG=* NODE_DEBUG=http,https,net,tls npm run deploy 2>&1 | tee deploy-debug.log\n\nSau đó tìm trong file:\n- đường dẫn thực tế của request (phải chứa /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV)\n- mã trạng thái trả về\n- lỗi TLS nếu có",
-        "label": "Mac / Linux",
-        "recommended": true
-      },
-      {
-        "body": "$env:DEBUG=\"*\"; $env:NODE_DEBUG=\"http,https,net,tls\"; npm run deploy 2>&1 | Tee-Object deploy-debug.log",
-        "label": "Windows PowerShell"
-      }
-    ],
-    "status": "Đã giải quyết",
-    "symptom": "Deploy fail nhưng không rõ request đi đến đâu, header gì, redirect ra sao — đặc biệt khi nghi ngờ destination, proxy hoặc chứng chỉ.",
-    "title": "Cách bật debug mạng để soi request deploy",
+    "createdAt": "2026-09-17T10:08:00.000Z",
     "updatedAt": "2026-09-17T10:08:00.000Z",
-    "verified": false,
     "id": "debug-deploy-network"
   },
   {
-    "createdAt": "2026-09-16T15:00:00.000Z",
+    "title": "Turning on detailed logging for deploy-to-abap",
     "module": "SAP Fiori / UI5",
+    "severity": "Low",
+    "status": "Resolved",
+    "verified": true,
     "msgKeys": [
       "log: 5",
       "--verbose"
     ],
-    "prevention": "Lưu ý giới hạn: log: 5 chỉ in thêm phần chạy ở Node.js phía client (payload, archive, config đã resolve). Phần \"Updating the Application Index\" chạy trong ABAP backend — tăng log level không lấy thêm được chi tiết, phải đọc SLG1 client 000 object /UI5/APPIDX hoặc ADT Gateway Error Log.",
+    "symptom": "A deploy fails but the default log (Info level) does not show the payload sent, nor which package and transport were actually used.",
+    "rootCause": "The default log level for deploy-to-abap is Info (2). The payload, the resolved configuration and the archive file list only appear at Debug/Silly level.",
+    "solutions": [
+      {
+        "label": "Add log: 5 to ui5-deploy.yaml",
+        "recommended": true,
+        "body": "Place it at the same level as target and app:\n\n  - name: deploy-to-abap\n    afterTask: generateCachebusterInfo\n    configuration:\n      log: 5\n      target: { ... }\n      app: { ... }\n\nLevels: 0 Error / 1 Warn / 2 Info (default) / 3 Verbose / 4 Debug / 5 Silly.\nEquivalent: verbose: true."
+      },
+      {
+        "label": "Use the CLI instead of editing the yaml",
+        "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose\n\nKeep the output:\n  npm run deploy 2>&1 | tee deploy-debug.log"
+      }
+    ],
+    "prevention": "Know the limit: log: 5 only adds output from the Node.js side (payload, archive, resolved config). The \"Updating the Application Index\" step runs inside the ABAP backend — raising the log level gains you nothing there. For that you need SLG1 in client 000 on object /UI5/APPIDX, or the ADT Gateway Error Log.",
     "refs": [
       "https://github.com/SAP/open-ux-tools/tree/main/packages/deploy-tooling#configuration-with-logging-enabled"
     ],
-    "rootCause": "Log level mặc định của deploy-to-abap là Info (2). Payload, cấu hình đã resolve và danh sách file trong archive chỉ hiện ở level Debug/Silly.",
-    "severity": "Thấp",
-    "solutions": [
-      {
-        "body": "Đặt cùng cấp với target và app:\n\n  - name: deploy-to-abap\n    afterTask: generateCachebusterInfo\n    configuration:\n      log: 5\n      target: { ... }\n      app: { ... }\n\nMức log: 0 Error · 1 Warn · 2 Info (mặc định) · 3 Verbose · 4 Debug · 5 Silly.\nTương đương: verbose: true.",
-        "label": "Thêm log: 5 vào ui5-deploy.yaml",
-        "recommended": true
-      },
-      {
-        "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose\n\nLưu file để phân tích:\n  npm run deploy 2>&1 | tee deploy-debug.log",
-        "label": "Dùng CLI thay vì sửa yaml"
-      }
-    ],
-    "status": "Đã giải quyết",
-    "symptom": "Deploy fail nhưng log mặc định (level Info) không đủ thông tin để biết payload gửi đi là gì, package và transport nào thực sự được dùng.",
-    "title": "Bật log chi tiết cho deploy-to-abap để chẩn đoán lỗi",
+    "createdAt": "2026-09-16T15:00:00.000Z",
     "updatedAt": "2026-09-17T09:07:00.000Z",
-    "verified": true,
     "id": "deploy-logging-config"
   },
   {
-    "createdAt": "2026-09-16T14:00:00.000Z",
+    "title": "bash: fiori: command not found when running the deploy command directly",
     "module": "SAP Fiori / UI5",
+    "severity": "Low",
+    "status": "Resolved",
+    "verified": true,
     "msgKeys": [
       "command not found"
     ],
-    "prevention": "Mọi lệnh dùng binary của project nên đi qua npm script hoặc npx. Không cài @sap/ux-ui5-tooling global — dễ lệch version giữa các máy trong team.",
+    "symptom": "Running this straight in a terminal:\n\n  npm run build && fiori deploy --config ui5-deploy.yaml --verbose\n\nThe build completes, then it stops at:\n\n  bash: fiori: command not found",
+    "rootCause": "`fiori` is a local binary installed by @sap/ux-ui5-tooling into node_modules/.bin, not on the system PATH. Only npm scripts add node_modules/.bin to PATH when they run.",
+    "solutions": [
+      {
+        "label": "Use npx",
+        "recommended": true,
+        "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose"
+      },
+      {
+        "label": "Call the binary by path",
+        "body": "npm run build && ./node_modules/.bin/fiori deploy --config ui5-deploy.yaml --verbose"
+      },
+      {
+        "label": "Add a script to package.json",
+        "body": "\"deploy-verbose\": \"npm run build && fiori deploy --config ui5-deploy.yaml --verbose\"\n\nThen just: npm run deploy-verbose"
+      }
+    ],
+    "prevention": "Route every project-binary command through an npm script or npx. Do not install @sap/ux-ui5-tooling globally — it drifts out of sync across team machines.",
     "refs": [
       "package.json scripts"
     ],
-    "rootCause": "fiori là binary local do @sap/ux-ui5-tooling cài vào node_modules/.bin, không nằm trên PATH hệ thống. Chỉ npm script mới tự thêm node_modules/.bin vào PATH khi chạy.",
-    "severity": "Thấp",
-    "solutions": [
-      {
-        "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose",
-        "label": "Dùng npx",
-        "recommended": true
-      },
-      {
-        "body": "npm run build && ./node_modules/.bin/fiori deploy --config ui5-deploy.yaml --verbose",
-        "label": "Gọi thẳng đường dẫn binary"
-      },
-      {
-        "body": "\"deploy-verbose\": \"npm run build && fiori deploy --config ui5-deploy.yaml --verbose\"\n\nSau đó chỉ cần: npm run deploy-verbose",
-        "label": "Thêm script vào package.json"
-      }
-    ],
-    "status": "Đã giải quyết",
-    "symptom": "Chạy trực tiếp trong terminal:\n\n  npm run build && fiori deploy --config ui5-deploy.yaml --verbose\n\nBuild chạy xong bình thường, rồi dừng ở:\n\n  bash: fiori: command not found",
-    "title": "bash: fiori: command not found khi chạy lệnh deploy trực tiếp",
+    "createdAt": "2026-09-16T14:00:00.000Z",
     "updatedAt": "2026-09-17T09:06:00.000Z",
-    "verified": true,
     "id": "fiori-command-not-found"
   },
   {
-    "createdAt": "2026-09-17T08:25:00.000Z",
+    "title": "manifestEnhancer warning: supported locales do not contain fallback locale 'en'",
     "module": "SAP Fiori / UI5",
+    "severity": "Low",
+    "status": "Open",
+    "verified": false,
     "msgKeys": [
       "manifestEnhancer",
       "supported locales"
     ],
-    "prevention": "Khởi tạo project với đủ i18n.properties + i18n_en.properties ngay từ template, kể cả khi chưa làm đa ngôn ngữ.",
-    "refs": [
-      "UI5 Tooling → manifestEnhancer task"
-    ],
-    "rootCause": "Chưa xác minh. Project chỉ có i18n/i18n.properties (không hậu tố ngôn ngữ), trong khi UI5 tooling tính danh sách supported locales từ các file có hậu tố như i18n_en.properties, i18n_vi.properties. Danh sách rỗng nên không chứa 'en'.",
-    "severity": "Thấp",
+    "symptom": "`ui5 build` prints this warning, repeated several times:\n\n  warn builder:processors:manifestEnhancer manifest.json: Generated supported locales ('') for bundle 'i18n/i18n.properties' do not contain default fallback locale 'en'. Either provide a properties file for 'en' or configure another available fallbackLocale\n\nThe build still succeeds.",
+    "rootCause": "Not verified. The project only has i18n/i18n.properties with no language suffix, while UI5 tooling derives the supported-locales list from suffixed files such as i18n_en.properties or i18n_vi.properties. The list comes out empty, so it does not contain 'en'.",
     "solutions": [
       {
-        "body": "Tạo webapp/i18n/i18n_en.properties (có thể copy nội dung từ i18n.properties). Cần thêm tiếng Việt thì tạo thêm i18n_vi.properties.\n\nLợi ích phụ: tách được text đa ngôn ngữ ngay từ đầu thay vì hardcode.",
-        "label": "Tạo file i18n_en.properties",
-        "recommended": true
+        "label": "Add an i18n_en.properties file",
+        "recommended": true,
+        "body": "Create webapp/i18n/i18n_en.properties (you can copy the contents of i18n.properties). Add i18n_vi.properties too if you need Vietnamese.\n\nSide benefit: translatable text gets separated properly from the start instead of being hardcoded."
       },
       {
-        "body": "Chưa xác minh cú pháp chính xác cho phiên bản UI5 của bạn — kiểm tra tài liệu UI5 tương ứng trước khi áp dụng. Ý tưởng: cấu hình fallbackLocale trong sap.ui5.models.i18n.settings trỏ về locale thực sự có file.",
-        "label": "Khai fallbackLocale trong manifest.json"
+        "label": "Configure fallbackLocale in manifest.json",
+        "body": "The exact syntax for your UI5 version is not verified — check the matching UI5 documentation before applying. The idea: configure fallbackLocale under sap.ui5.models.i18n.settings to point at a locale that actually has a file."
       },
       {
-        "body": "Warning này không chặn build và không chặn deploy. Nếu app chỉ dùng một ngôn ngữ và không có kế hoạch đa ngôn ngữ, có thể chấp nhận — nhưng nó sẽ làm nhiễu log mỗi lần build.",
-        "label": "Bỏ qua"
+        "label": "Ignore it",
+        "body": "The warning blocks neither the build nor the deploy. If the app is single-language with no plan for translation, it is acceptable — but it will keep adding noise to every build log."
       }
     ],
-    "status": "Mở",
-    "symptom": "Khi chạy ui5 build, xuất hiện warning lặp nhiều lần:\n\n  warn builder:processors:manifestEnhancer manifest.json: Generated supported locales ('') for bundle 'i18n/i18n.properties' do not contain default fallback locale 'en'. Either provide a properties file for 'en' or configure another available fallbackLocale\n\nBuild vẫn succeeded.",
-    "title": "Warning manifestEnhancer: supported locales không chứa fallback locale 'en'",
+    "prevention": "Scaffold projects with both i18n.properties and i18n_en.properties from the template, even when translation is not yet on the roadmap.",
+    "refs": [
+      "UI5 Tooling -> manifestEnhancer task"
+    ],
+    "createdAt": "2026-09-17T08:25:00.000Z",
     "updatedAt": "2026-09-17T09:11:00.000Z",
-    "verified": false,
     "id": "i18n-fallback-locale-warning"
   }
 ]

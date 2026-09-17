@@ -1,31 +1,31 @@
 {
-  "createdAt": "2026-09-17T10:02:00.000Z",
+  "title": "HTTP 504 Gateway Timeout when deploying a large app",
   "module": "Basis / Auth",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "HTTP 504",
     "Gateway Timeout",
     "HTML5.Timeout"
   ],
-  "prevention": "Đặt HTML5.Timeout = 60000 ngay khi tạo destination mới, không chờ đến khi gặp lỗi.",
+  "symptom": "The deploy runs for a while and then stops with HTTP 504. Usually with apps that have many files, or on a loaded system.",
+  "rootCause": "Not verified on our own systems. Per SAP-samples documentation: the backend response time exceeds the timeout configured on the destination.",
+  "solutions": [
+    {
+      "label": "Raise HTML5.Timeout on the destination",
+      "recommended": true,
+      "body": "Add or edit the destination property in the BTP cockpit:\n\n  HTML5.Timeout = 60000\n\nMilliseconds. 60000 is the documented minimum; larger apps may need more."
+    },
+    {
+      "label": "Shrink the archive",
+      "body": "Review the `exclude` block in ui5-deploy.yaml — drop /test/, /localService/, mock data and anything else not needed at runtime. The deploy log prints the file count in the archive; use it to compare before and after."
+    }
+  ],
+  "prevention": "Set HTML5.Timeout = 60000 when creating any new destination, rather than waiting to hit the error.",
   "refs": [
     "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
   ],
-  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: thời gian phản hồi của backend vượt quá timeout cấu hình trên destination.",
-  "severity": "Trung bình",
-  "solutions": [
-    {
-      "body": "Thêm hoặc sửa property của destination trong BTP cockpit:\n\n  HTML5.Timeout = 60000\n\nĐơn vị mili giây. 60000 là giá trị tối thiểu được khuyến nghị; app lớn có thể cần cao hơn.",
-      "label": "Tăng HTML5.Timeout trên destination",
-      "recommended": true
-    },
-    {
-      "body": "Kiểm tra khối exclude trong ui5-deploy.yaml — loại /test/, /localService/, mock data và các file không cần thiết. Log deploy in ra số file trong archive, dùng con số đó để đối chiếu.",
-      "label": "Giảm kích thước archive"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy chạy một lúc rồi dừng với HTTP 504. Thường gặp với app có nhiều file hoặc hệ thống đang tải cao.",
-  "title": "HTTP 504 Gateway Timeout khi deploy app lớn",
-  "updatedAt": "2026-09-17T10:02:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T10:02:00.000Z",
+  "updatedAt": "2026-09-17T10:02:00.000Z"
 }

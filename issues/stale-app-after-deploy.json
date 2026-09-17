@@ -1,34 +1,34 @@
 {
-  "createdAt": "2026-09-17T08:35:00.000Z",
+  "title": "Deploy succeeds but the browser still loads the old version of the app",
   "module": "SAP Fiori / UI5",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "cachebuster",
     "Already up-to-date"
   ],
-  "prevention": "Trước khi báo cho khách hàng rằng bản mới đã lên, tự kiểm tra ở cửa sổ ẩn danh. Trong log deploy, nhìn phần Operations để xác nhận file thực sự đã được ghi.",
-  "refs": [
-    "ui5.yaml → generateCachebusterInfo"
-  ],
-  "rootCause": "Chưa xác minh đầy đủ. Hai tầng có thể gây ra:\n- Build dùng thư mục dist cũ nên archive không chứa thay đổi (log sẽ báo Already up-to-date)\n- Cachebuster / cache trình duyệt giữ bản cũ ở phía client",
-  "severity": "Trung bình",
+  "symptom": "The deploy reports success but the app still shows the old UI or logic. Or the deploy log marks every file \"Already up-to-date\" even though you just changed the code.",
+  "rootCause": "Not fully verified. Two layers can cause it:\n- the build reused a stale dist folder, so the archive never contained the change (the log then says Already up-to-date)\n- cachebuster or browser cache is holding the old version on the client side",
   "solutions": [
     {
-      "body": "Đọc phần * Operations * trong log deploy (cần log: 5 hoặc --verbose):\n\n- Nếu mọi file \"Already up-to-date\" → vấn đề ở build, không phải cache trình duyệt.\n- Nếu có file UPDATE/ADD → upload đã đúng, vấn đề ở phía client.",
-      "label": "Xác định tầng gây lỗi bằng log deploy",
-      "recommended": true
+      "label": "Identify the layer from the deploy log",
+      "recommended": true,
+      "body": "Read the `* Operations *` block (needs log: 5 or --verbose):\n\n- every file \"Already up-to-date\" -> the problem is in the build, not the browser cache\n- files marked UPDATE/ADD -> the upload was correct; the problem is client-side"
     },
     {
-      "body": "npm run build -- --clean-dest\n\nhoặc xoá thủ công thư mục dist rồi build lại.",
-      "label": "Build sạch"
+      "label": "Build clean",
+      "body": "npm run build -- --clean-dest\n\nOr delete the dist folder by hand and rebuild."
     },
     {
-      "body": "Mở app ở cửa sổ ẩn danh, hoặc hard reload (Ctrl+Shift+R). Nếu bản mới hiện ra thì đúng là cache client.\n\nKiểm tra task generateCachebusterInfo có chạy trong ui5.yaml không — deploy-to-abap thường được đặt afterTask: generateCachebusterInfo chính vì lý do này.",
-      "label": "Kiểm tra phía trình duyệt"
+      "label": "Check the browser side",
+      "body": "Open the app in a private window, or hard reload (Ctrl+Shift+R). If the new version appears, it was the client cache.\n\nVerify that the generateCachebusterInfo task runs in ui5.yaml — deploy-to-abap is normally placed with afterTask: generateCachebusterInfo for exactly this reason."
     }
   ],
-  "status": "Mở",
-  "symptom": "Deploy báo thành công nhưng mở app vẫn thấy giao diện/logic cũ. Hoặc log deploy báo tất cả file \"Already up-to-date\" dù vừa sửa code.",
-  "title": "Deploy xong nhưng trình duyệt vẫn load bản cũ của app",
-  "updatedAt": "2026-09-17T09:13:00.000Z",
-  "verified": false
+  "prevention": "Before telling a client the new version is live, check it yourself in a private window. In the deploy log, read the Operations block to confirm files were actually written.",
+  "refs": [
+    "ui5.yaml -> generateCachebusterInfo"
+  ],
+  "createdAt": "2026-09-17T08:35:00.000Z",
+  "updatedAt": "2026-09-17T09:13:00.000Z"
 }

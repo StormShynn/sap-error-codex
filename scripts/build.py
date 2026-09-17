@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Gộp issues/*.json thành data/issues.json và kiểm tra schema.
+"""Merge issues/*.json into data/issues.json and validate the schema.
 
-Chạy:  python3 scripts/build.py
+Usage:  python3 scripts/build.py
 """
 import json
 import os
@@ -14,44 +14,44 @@ MODULES = {
     "SAP Fiori / UI5", "ABAP / Extensibility", "Transport & Release",
     "Integration / OData", "Power BI", "Microsoft Fabric", "Basis / Auth",
 }
-SEVERITIES = {"Blocker": 0, "Cao": 1, "Trung bình": 2, "Thấp": 3}
-STATUSES = {"Mở", "Đang điều tra", "Đã giải quyết"}
+SEVERITIES = {"Blocker": 0, "High": 1, "Medium": 2, "Low": 3}
+STATUSES = {"Open", "Investigating", "Resolved"}
 REQUIRED = ("title", "module", "severity", "status", "symptom")
 
 
 def check(issue, path, errors):
-    """Ghi lỗi schema vào `errors`."""
+    """Append schema problems to `errors`."""
     for key in REQUIRED:
         if not issue.get(key):
-            errors.append(f"{path}: thiếu trường bắt buộc '{key}'")
+            errors.append(f"{path}: missing required field '{key}'")
 
     if issue.get("module") and issue["module"] not in MODULES:
-        errors.append(f"{path}: module không hợp lệ '{issue['module']}'")
+        errors.append(f"{path}: unknown module '{issue['module']}'")
     if issue.get("severity") and issue["severity"] not in SEVERITIES:
-        errors.append(f"{path}: severity không hợp lệ '{issue['severity']}'")
+        errors.append(f"{path}: unknown severity '{issue['severity']}'")
     if issue.get("status") and issue["status"] not in STATUSES:
-        errors.append(f"{path}: status không hợp lệ '{issue['status']}'")
+        errors.append(f"{path}: unknown status '{issue['status']}'")
 
     if not isinstance(issue.get("verified", False), bool):
-        errors.append(f"{path}: verified phải là true/false")
+        errors.append(f"{path}: verified must be true or false")
 
-    sols = issue.get("solutions") or []
-    if not sols:
-        errors.append(f"{path}: cần ít nhất một cách xử lý")
-    recommended = sum(1 for s in sols if s.get("recommended"))
+    solutions = issue.get("solutions") or []
+    if not solutions:
+        errors.append(f"{path}: needs at least one fix")
+    recommended = sum(1 for s in solutions if s.get("recommended"))
     if recommended > 1:
-        errors.append(f"{path}: chỉ được một cách xử lý recommended (đang có {recommended})")
-    for i, s in enumerate(sols):
-        if not s.get("label"):
-            errors.append(f"{path}: solutions[{i}] thiếu label")
-        if not s.get("body"):
-            errors.append(f"{path}: solutions[{i}] thiếu body")
+        errors.append(f"{path}: only one fix may be recommended (found {recommended})")
+    for i, solution in enumerate(solutions):
+        if not solution.get("label"):
+            errors.append(f"{path}: solutions[{i}] has no label")
+        if not solution.get("body"):
+            errors.append(f"{path}: solutions[{i}] has no body")
 
 
 def main():
     paths = sorted(glob(os.path.join(ROOT, "issues", "*.json")))
     if not paths:
-        print("Không tìm thấy file nào trong issues/", file=sys.stderr)
+        print("No files found in issues/", file=sys.stderr)
         return 1
 
     issues, errors = [], []
@@ -61,7 +61,7 @@ def main():
             with open(path, encoding="utf-8") as fh:
                 issue = json.load(fh)
         except json.JSONDecodeError as exc:
-            errors.append(f"{rel}: JSON không hợp lệ — {exc}")
+            errors.append(f"{rel}: invalid JSON - {exc}")
             continue
 
         issue["id"] = os.path.splitext(os.path.basename(path))[0]
@@ -70,7 +70,7 @@ def main():
         issues.append(issue)
 
     if errors:
-        print("Build dừng lại, cần sửa:", file=sys.stderr)
+        print("Build stopped, fix these first:", file=sys.stderr)
         for err in errors:
             print("  -", err, file=sys.stderr)
         return 1
@@ -79,13 +79,12 @@ def main():
 
     out_dir = os.path.join(ROOT, "data")
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "issues.json")
-    with open(out_path, "w", encoding="utf-8") as fh:
+    with open(os.path.join(out_dir, "issues.json"), "w", encoding="utf-8") as fh:
         json.dump(issues, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
 
     verified = sum(1 for r in issues if r.get("verified"))
-    print(f"data/issues.json: {len(issues)} mục, {verified} đã xác minh")
+    print(f"data/issues.json: {len(issues)} entries, {verified} verified")
 
     by_module = {}
     for issue in issues:

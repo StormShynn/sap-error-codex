@@ -1,30 +1,30 @@
 {
-  "createdAt": "2026-09-16T15:00:00.000Z",
+  "title": "Turning on detailed logging for deploy-to-abap",
   "module": "SAP Fiori / UI5",
+  "severity": "Low",
+  "status": "Resolved",
+  "verified": true,
   "msgKeys": [
     "log: 5",
     "--verbose"
   ],
-  "prevention": "Lưu ý giới hạn: log: 5 chỉ in thêm phần chạy ở Node.js phía client (payload, archive, config đã resolve). Phần \"Updating the Application Index\" chạy trong ABAP backend — tăng log level không lấy thêm được chi tiết, phải đọc SLG1 client 000 object /UI5/APPIDX hoặc ADT Gateway Error Log.",
+  "symptom": "A deploy fails but the default log (Info level) does not show the payload sent, nor which package and transport were actually used.",
+  "rootCause": "The default log level for deploy-to-abap is Info (2). The payload, the resolved configuration and the archive file list only appear at Debug/Silly level.",
+  "solutions": [
+    {
+      "label": "Add log: 5 to ui5-deploy.yaml",
+      "recommended": true,
+      "body": "Place it at the same level as target and app:\n\n  - name: deploy-to-abap\n    afterTask: generateCachebusterInfo\n    configuration:\n      log: 5\n      target: { ... }\n      app: { ... }\n\nLevels: 0 Error / 1 Warn / 2 Info (default) / 3 Verbose / 4 Debug / 5 Silly.\nEquivalent: verbose: true."
+    },
+    {
+      "label": "Use the CLI instead of editing the yaml",
+      "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose\n\nKeep the output:\n  npm run deploy 2>&1 | tee deploy-debug.log"
+    }
+  ],
+  "prevention": "Know the limit: log: 5 only adds output from the Node.js side (payload, archive, resolved config). The \"Updating the Application Index\" step runs inside the ABAP backend — raising the log level gains you nothing there. For that you need SLG1 in client 000 on object /UI5/APPIDX, or the ADT Gateway Error Log.",
   "refs": [
     "https://github.com/SAP/open-ux-tools/tree/main/packages/deploy-tooling#configuration-with-logging-enabled"
   ],
-  "rootCause": "Log level mặc định của deploy-to-abap là Info (2). Payload, cấu hình đã resolve và danh sách file trong archive chỉ hiện ở level Debug/Silly.",
-  "severity": "Thấp",
-  "solutions": [
-    {
-      "body": "Đặt cùng cấp với target và app:\n\n  - name: deploy-to-abap\n    afterTask: generateCachebusterInfo\n    configuration:\n      log: 5\n      target: { ... }\n      app: { ... }\n\nMức log: 0 Error · 1 Warn · 2 Info (mặc định) · 3 Verbose · 4 Debug · 5 Silly.\nTương đương: verbose: true.",
-      "label": "Thêm log: 5 vào ui5-deploy.yaml",
-      "recommended": true
-    },
-    {
-      "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose\n\nLưu file để phân tích:\n  npm run deploy 2>&1 | tee deploy-debug.log",
-      "label": "Dùng CLI thay vì sửa yaml"
-    }
-  ],
-  "status": "Đã giải quyết",
-  "symptom": "Deploy fail nhưng log mặc định (level Info) không đủ thông tin để biết payload gửi đi là gì, package và transport nào thực sự được dùng.",
-  "title": "Bật log chi tiết cho deploy-to-abap để chẩn đoán lỗi",
-  "updatedAt": "2026-09-17T09:07:00.000Z",
-  "verified": true
+  "createdAt": "2026-09-16T15:00:00.000Z",
+  "updatedAt": "2026-09-17T09:07:00.000Z"
 }

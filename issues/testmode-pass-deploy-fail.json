@@ -1,30 +1,30 @@
 {
-  "createdAt": "2026-09-16T11:00:00.000Z",
+  "title": "deploy --testMode reports \"no problems\" but the real deploy still fails with 400",
   "module": "SAP Fiori / UI5",
+  "severity": "Medium",
+  "status": "Resolved",
+  "verified": true,
   "msgKeys": [
     "HTTP 400",
     "testMode"
   ],
-  "prevention": "Khi deploy một app lần đầu hoặc sau khi đổi manifest, chạy deploy thật trên môi trường DEV trước, đừng dựa vào test mode để quyết định lên QA.",
+  "symptom": "`npm run deploy-test` reports:\n\n  OK SAPUI5 ABAP Repository follows the rules of creating BSP application\n  OK Package is found on ABAP system\n  OK Transport Request is found on ABAP system\n  Test run has indicated no problems\n\nBut `npm run deploy` right afterwards still fails with status 400.",
+  "rootCause": "Test mode only runs configuration validation and simulates the file upload. It does NOT run the \"Updating the Application Index\" step and does not write LADIs — which is exactly where most real deployment failures occur.\n\nThe deploy tooling log says so itself: \"A successful TestMode execution does not necessarily mean that your upload will be successful.\"",
+  "solutions": [
+    {
+      "label": "Know what test mode actually covers",
+      "recommended": true,
+      "body": "Test mode checks: yaml syntax, package exists, transport exists, connectivity and authentication, archive structure.\n\nTest mode does NOT check: writing to the transport, the Application Index, LADIs, repository registration, package conflicts on secondary objects.\n\nTreat it as a fast pre-filter, not a guarantee."
+    },
+    {
+      "label": "Read the log at the right phase when a real deploy fails",
+      "body": "Skip the header and the Parameters block. Find the line `* Updating the Application Index *` — the real error is always right after it.\n\nThe `info ... message_text ...` lines are just links to look up message text, not errors."
+    }
+  ],
+  "prevention": "When deploying an app for the first time, or after changing the manifest, run a real deploy on DEV. Never let a passing test mode decide a promotion to QA.",
   "refs": [
     "open-ux-tools/packages/deploy-tooling README"
   ],
-  "rootCause": "Test mode chỉ chạy phần validate cấu hình và mô phỏng upload file. Nó KHÔNG chạy bước \"Updating the Application Index\" và không ghi LADI — đúng chỗ phần lớn lỗi deploy thật phát sinh.\n\nChính log của deploy tooling đã nói: \"A successful TestMode execution does not necessarily mean that your upload will be successful.\"",
-  "severity": "Trung bình",
-  "solutions": [
-    {
-      "body": "Test mode kiểm được: cú pháp yaml, package tồn tại, transport tồn tại, kết nối/auth, cấu trúc archive.\n\nTest mode KHÔNG kiểm được: ghi transport, Application Index, LADI, đăng ký repository, xung đột package của object phụ.\n\nDùng test mode như một bước lọc nhanh trước khi deploy thật, không coi nó là bảo chứng.",
-      "label": "Hiểu đúng phạm vi test mode",
-      "recommended": true
-    },
-    {
-      "body": "Bỏ qua phần header và Parameters. Tìm dòng bắt đầu bằng \"* Updating the Application Index *\" — lỗi thật luôn nằm ngay sau đó.\n\nCác dòng \"info ... message_text ...\" chỉ là link tra nội dung message, không phải lỗi.",
-      "label": "Đọc log ở đúng giai đoạn khi deploy thật fail"
-    }
-  ],
-  "status": "Đã giải quyết",
-  "symptom": "npm run deploy-test cho kết quả:\n\n  √ SAPUI5 ABAP Repository follows the rules of creating BSP application\n  √ Package is found on ABAP system\n  √ Transport Request is found on ABAP system\n  Test run has indicated no problems\n\nNhưng npm run deploy ngay sau đó vẫn fail với status 400.",
-  "title": "deploy --testMode báo \"no problems\" nhưng deploy thật vẫn fail 400",
-  "updatedAt": "2026-09-17T09:05:00.000Z",
-  "verified": true
+  "createdAt": "2026-09-16T11:00:00.000Z",
+  "updatedAt": "2026-09-17T09:05:00.000Z"
 }

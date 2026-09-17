@@ -1,32 +1,32 @@
 {
-  "createdAt": "2026-09-17T10:07:00.000Z",
+  "title": "Error in the SAPUI5 repository, which is a local object of the user xxx",
   "module": "Transport & Release",
+  "severity": "Medium",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "local object of the user",
     "$TMP",
     "SAP KBA 3528702"
   ],
-  "prevention": "Cấm dùng $TMP cho bất kỳ app nào sẽ được người khác dùng hoặc chuyển lên QA. Đưa vào code review checklist: kiểm tra app.package trong ui5-deploy.yaml.",
+  "symptom": "Deploying from SAP Business Application Studio or VS Code fails with a message saying the repository is a local object belonging to another user.",
+  "rootCause": "Not verified. Likely: the repository was created earlier in package $TMP (a local object) by a different user. Local objects are bound to the user who created them and cannot be shared.",
+  "solutions": [
+    {
+      "label": "Deploy to a transportable package instead of $TMP",
+      "recommended": true,
+      "body": "$TMP is for personal throwaway experiments only. Anything shared must live in a Z* package with a transport.\n\nNote: once created in $TMP the package cannot be changed — the object has to be deleted and recreated, or a different name used."
+    },
+    {
+      "label": "Ask the owner to delete the local object",
+      "body": "Only the user who created a local object can delete it in ADT. After deletion, deploy again into a transportable package."
+    }
+  ],
+  "prevention": "Ban $TMP for any app another person will use or that will move to QA. Add it to the code review checklist: verify `app.package` in ui5-deploy.yaml.",
   "refs": [
     "SAP KBA 3528702",
     "SAP KBA 3374975"
   ],
-  "rootCause": "Chưa xác minh. Khả năng: repository đã được tạo trước đó vào package $TMP (local object) bởi một user khác. Local object gắn với user tạo ra nó và không chia sẻ được.",
-  "severity": "Trung bình",
-  "solutions": [
-    {
-      "body": "$TMP chỉ dùng để thử nghiệm cá nhân. Mọi app dùng chung phải nằm trong package Z* có transport.\n\nLưu ý: đã tạo ở $TMP rồi thì không đổi package được — phải xoá rồi tạo lại, hoặc dùng tên khác.",
-      "label": "Deploy vào package transportable thay vì $TMP",
-      "recommended": true
-    },
-    {
-      "body": "Chỉ user đã tạo local object mới xoá được nó trong ADT. Sau khi xoá, deploy lại vào package transportable.",
-      "label": "Nhờ chủ sở hữu xoá local object"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy từ SAP Business Application Studio hoặc VS Code báo lỗi đại ý: repository là local object của một user khác.",
-  "title": "Error in the SAPUI5 repository, which is a local object of the user xxx",
-  "updatedAt": "2026-09-17T10:07:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T10:07:00.000Z",
+  "updatedAt": "2026-09-17T10:07:00.000Z"
 }

@@ -1,0 +1,41 @@
+name: Amend or verify an existing entry
+description: Add to, correct, or confirm a documented fix
+title: "[Amend] "
+labels: ["amendment"]
+body:
+  - type: input
+    id: issue_id
+    attributes:
+      label: Entry ID
+      description: The filename under issues/, without the .json extension
+      placeholder: ladi-package-conflict
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of contribution
+      options:
+        - Verification — I ran it and it worked
+        - Counter-evidence — I ran it and it did NOT work
+        - An additional fix
+        - Correcting something wrong
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Details
+      description: |
+        For a verification: date, environment (DEV/QA/PRD), system version.
+        For counter-evidence: what conditions made it fail, with the log.
+      render: text
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Reminder: no hostnames, tenant IDs, usernames or real transport numbers.

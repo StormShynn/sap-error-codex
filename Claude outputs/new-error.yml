@@ -1,0 +1,83 @@
+name: Report a new error
+description: Document a deployment error that is not in the reference yet
+title: "[Error] "
+labels: ["new-error"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include hostnames, tenant IDs, usernames or real transport numbers.
+        Use placeholders: `<host>`, `<appname>`, `<TRANSPORT>`.
+
+  - type: input
+    id: title
+    attributes:
+      label: What you see
+      description: One line, describing what actually appears — not what you think causes it
+      placeholder: Deploy fails with 400 at the Application Index step although the package is correct
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Area
+      options:
+        - SAP Fiori / UI5
+        - ABAP / Extensibility
+        - Transport & Release
+        - Integration / OData
+        - Power BI
+        - Microsoft Fabric
+        - Basis / Auth
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Blocker
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: input
+    id: msgkeys
+    attributes:
+      label: Message IDs / error codes
+      description: Comma separated. This is what the next person will search for.
+      placeholder: /UI2/UI5_REP_LOAD-039, HTTP 400
+    validations:
+      required: true
+
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Log
+      description: Paste the decisive log line verbatim — do not paraphrase it
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: rootcause
+    attributes:
+      label: Cause
+      description: If you are not certain, write "Not verified. Possibly: ..."
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Fix
+      description: Concrete steps with commands or transaction paths. State the cost — downtime, authorizations, who else is needed.
+
+  - type: checkboxes
+    id: verified
+    attributes:
+      label: Verification
+      options:
+        - label: I ran this fix on a real system and it worked

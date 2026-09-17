@@ -1,29 +1,29 @@
 {
-  "createdAt": "2026-09-17T08:10:00.000Z",
+  "title": "Package is not found on ABAP system when deploying a new app",
   "module": "ABAP / Extensibility",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "Package is found on ABAP system (fail)"
   ],
-  "prevention": "Thống nhất cây package cho từng module nghiệp vụ ngay đầu dự án (ZQM, ZMM, ZSD…) và ghi vào tài liệu kỹ thuật. Tránh tạo package theo từng app — sinh ra rất nhiều package rỗng và làm phức tạp việc gom transport.",
-  "refs": [
-    "ADT → New → ABAP Package"
-  ],
-  "rootCause": "Chưa xác minh. Khả năng: package chưa được tạo trong ADT, sai chính tả, hoặc package thuộc software component mà user không có quyền.",
-  "severity": "Cao",
+  "symptom": "The deploy validation phase reports that the package declared in `app.package` of ui5-deploy.yaml does not exist.",
+  "rootCause": "Not verified. Possibilities: the package was never created in ADT, the name is misspelled, or the package belongs to a software component the user has no rights on.",
   "solutions": [
     {
-      "body": "ADT → chọn package cha (VD ZQM) → New → ABAP Package → đặt tên, gán Software Component và Transport Layer theo chuẩn của dự án.\n\nTrên S/4HANA Public Cloud, package phải nằm trong structure package cho phép Developer Extensibility.",
-      "label": "Tạo package trong ADT trước khi deploy",
-      "recommended": true
+      "label": "Create the package in ADT before deploying",
+      "recommended": true,
+      "body": "ADT -> select the parent package (e.g. ZQM) -> New -> ABAP Package -> set the name, Software Component and Transport Layer per project standard.\n\nOn S/4HANA Public Cloud the package must sit under a structure package that permits Developer Extensibility."
     },
     {
-      "body": "Nếu không cần package riêng cho từng app, khai package cha (VD ZQM) trong ui5-deploy.yaml. Lưu ý: package của một BSP app không đổi được sau lần deploy đầu tiên.",
-      "label": "Dùng package cha có sẵn"
+      "label": "Use an existing parent package",
+      "body": "If you do not need a dedicated package per app, declare the parent package (e.g. ZQM) in ui5-deploy.yaml.\n\nNote: the package of a BSP app cannot be changed after the first deploy."
     }
   ],
-  "status": "Mở",
-  "symptom": "Bước validate của deploy báo không tìm thấy package khai trong app.package của ui5-deploy.yaml.",
-  "title": "Package is not found on ABAP system khi deploy app mới",
-  "updatedAt": "2026-09-17T09:09:00.000Z",
-  "verified": false
+  "prevention": "Agree the package tree per business module at project start (ZQM, ZMM, ZSD...) and write it into the technical design. Avoid one package per app — it produces many near-empty packages and complicates transport bundling.",
+  "refs": [
+    "ADT -> New -> ABAP Package"
+  ],
+  "createdAt": "2026-09-17T08:10:00.000Z",
+  "updatedAt": "2026-09-17T09:09:00.000Z"
 }

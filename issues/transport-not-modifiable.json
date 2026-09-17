@@ -1,35 +1,35 @@
 {
-  "createdAt": "2026-09-17T08:00:00.000Z",
+  "title": "Deploy fails because the transport request is released or belongs to another package",
   "module": "Transport & Release",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "Transport Request is not found",
     "TR released"
   ],
-  "prevention": "Mỗi developer giữ một Workbench Request riêng cho từng sprint. Ghi mã TR vào README của project để cả team biết app nào đi cùng TR nào.",
+  "symptom": "The deploy stops at the validation phase with a message about the transport request: not found, or not writable.",
+  "rootCause": "Not verified. Common possibilities:\n- the transport has been released and can no longer be written to\n- the transport belongs to a different package than the target\n- the transport belongs to another owner who has not granted write access\n- a Customizing request was used where a Workbench request is required",
+  "solutions": [
+    {
+      "label": "Check the transport status in ADT",
+      "recommended": true,
+      "body": "Window -> Show View -> Transport Organizer -> find the transport number.\n\nConfirm: status = Modifiable, type = Workbench Request, and that you are the owner or have write access."
+    },
+    {
+      "label": "Create a new transport",
+      "body": "If the old transport is released, create a new Workbench Request in ADT and update `app.transport` in ui5-deploy.yaml."
+    },
+    {
+      "label": "Do not borrow someone else's transport",
+      "body": "Your objects end up mixed into their request; when they release it, your unfinished code rides along to QA or PRD. Always use your own transport unless there is an explicit agreement."
+    }
+  ],
+  "prevention": "One Workbench Request per developer per sprint. Record the transport number in the project README so the team knows which app travels in which request.",
   "refs": [
     "ADT Transport Organizer",
     "Fiori app: Export Software Collection (S/4HANA Public Cloud)"
   ],
-  "rootCause": "Chưa xác minh. Các khả năng thường gặp:\n- TR đã released nên không còn ghi được\n- TR thuộc package khác package đích\n- TR thuộc owner khác và không cho phép người khác ghi\n- Dùng TR của Customizing thay vì Workbench request",
-  "severity": "Cao",
-  "solutions": [
-    {
-      "body": "Window → Show View → Transport Organizer → tìm mã TR.\n\nCần xác nhận: status = Modifiable, loại = Workbench Request, owner là bạn hoặc bạn có quyền ghi.",
-      "label": "Kiểm tra trạng thái TR trong ADT",
-      "recommended": true
-    },
-    {
-      "body": "Nếu TR cũ đã released, tạo Workbench Request mới trong ADT và cập nhật app.transport trong ui5-deploy.yaml.",
-      "label": "Tạo transport mới"
-    },
-    {
-      "body": "Object của bạn sẽ trộn vào TR của họ; khi họ release sẽ mang theo code chưa sẵn sàng của bạn sang QA/PRD. Luôn dùng TR của chính mình trừ khi có thoả thuận rõ ràng.",
-      "label": "Không dùng transport của người khác"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy dừng ở bước validate với thông báo liên quan đến transport request: không tìm thấy, hoặc không ghi được vào TR.",
-  "title": "Deploy fail vì transport request đã released hoặc không thuộc package đích",
-  "updatedAt": "2026-09-17T09:08:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T08:00:00.000Z",
+  "updatedAt": "2026-09-17T09:08:00.000Z"
 }

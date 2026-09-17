@@ -1,6 +1,9 @@
 {
-  "createdAt": "2026-09-16T10:00:00.000Z",
+  "title": "Deploy fails with \"can only be deployed to the previous package\" even though the package in ui5-deploy.yaml is correct",
   "module": "SAP Fiori / UI5",
+  "severity": "Blocker",
+  "status": "Investigating",
+  "verified": true,
   "msgKeys": [
     "/UI2/UI5_REP_LOAD-039",
     "/UI2/UI5_REP_LOAD-031",
@@ -9,43 +12,40 @@
     "HTTP 400",
     "CA-UI5-ABA-SAR"
   ],
-  "prevention": "Trước khi undeploy một app có crossNavigation, kiểm tra LADI của nó nằm ở package và transport nào — và release transport chứa lệnh xoá trước khi deploy lại.\n\nThống nhất trong team: mỗi app chỉ một người deploy, dùng transport của chính mình. Nhiều người deploy cùng một app bằng các transport khác nhau là nguồn gốc của loại xung đột này.\n\nĐặt app.name và package theo quy ước cố định ngay từ lần deploy đầu — cả hai đều không đổi được sau đó.",
+  "symptom": "`npm run deploy` fails with HTTP 400. The BSP upload phase runs fine; the failure lands in the Application Index step:\n\n  Updating existing SAPUI5 ABAP repository ZQM04\n  * Updating the Application Index *\n  error Error updating LADIs for UI5 repository ZQM04, package ZQM04, transport HL8Kxxxxxx\n  info  Inbound ZQM04-display was converted to LADI ZQM04_UI5R\n  error SAPUI5 application can only be deployed to the previous package ZQM\n\nThe giveaway: changing `package` in ui5-deploy.yaml does not change the message, and neither does changing the transport.",
+  "rootCause": "The conflict is not on the BSP application. It is on the LADI (Launchpad App Descriptor Item) generated from the `crossNavigation` block in manifest.json.\n\nThe LADI name derives from the BSP repository name, not from the semantic object: repository `ZQM04` produces LADI `ZQM04_UI5R`. When a LADI of that name already exists — or once existed and was undeployed — under a different package, the Application Index step refuses to write it into the new package.\n\nIf the earlier deletion of that LADI sits in a transport that has not been released, the old package assignment is still recorded in the object directory, so the system keeps reading back the old package.",
+  "solutions": [
+    {
+      "label": "Remove crossNavigation from manifest.json to unblock the deploy",
+      "recommended": true,
+      "body": "Verified: the deploy succeeded immediately after removing this block.\n\nComment out or delete `crossNavigation` in webapp/manifest.json, then run `npm run deploy`. With no inbound there is no LADI to generate, so the Application Index step has nothing to conflict on.\n\nThe app is reachable at its direct URL:\n  https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html\n\nTrade-off: no tile on the Fiori Launchpad. Use this when you need to ship today."
+    },
+    {
+      "label": "Delete the stale LADI in ADT, then restore crossNavigation",
+      "body": "Not verified on this system.\n\n1. ADT (Eclipse) -> Ctrl+Shift+A -> type <APPNAME>_UI5R\n2. Note its Package and Transport\n3. Delete -> assign to your transport -> Activate\n4. Restore crossNavigation in manifest.json\n5. npm run deploy\n\nRequires delete authorization on the object (Developer Extensibility role). If the LADI belongs to someone else's transport and that transport is not released, you cannot delete it — the transport owner has to release it or delete the object themselves.\n\nNote: SAP Community reports that deleting a LADI by hand in Eclipse is blocked on S/4HANA Public Cloud (message along the lines of \"SAP GUI is not supported in project\"). If you hit that, go to solution 5."
+    },
+    {
+      "label": "Release the transport that carries the LADI deletion",
+      "body": "Not verified.\n\nApplies when the LADI was undeployed but the deletion still sits in an unreleased transport. Find that transport in the Transport Organizer, release it through the \"Export Software Collection\" app, then deploy again.\n\nWarning: releasing pushes every object in that transport to the next system. Review its contents first, especially if the transport belongs to someone else."
+    },
+    {
+      "label": "Rename the BSP app so a fresh LADI is generated",
+      "body": "Not verified.\n\nChange `app.name` in ui5-deploy.yaml (e.g. ZQM04 -> ZQM04A). That yields a new LADI `ZQM04A_UI5R` which does not collide with the old object. Keep crossNavigation as it is.\n\nTrade-off: the app URL changes, the Business Catalog and Business Role assignments have to be redone, and the old app is left behind as clutter. Use this only when you have no ADT delete rights and cannot reach the transport owner."
+    },
+    {
+      "label": "Open an SAP incident under component CA-FLP-ABA-DT",
+      "body": "Outcome not verified.\n\nThis has been reported on SAP Community: redeploying a Fiori app a second time to S/4HANA Cloud hits a LADI error, and manual deletion is blocked. That thread has no resolution — the only recommendation given is to open an incident with SAP.\n\nComponent: CA-FLP-ABA-DT\n\nAttach to the ticket:\n- the full deploy log (run with log: 5)\n- repository name, package, transport\n- the Transaction ID from the Gateway Error Log\n- what you already tried and what happened\n\nUse this when solutions 2 and 3 are both out of reach and you need to keep the app name."
+    }
+  ],
+  "prevention": "Before undeploying an app that has crossNavigation, check which package and transport its LADI belongs to — and release the transport carrying the deletion before deploying again.\n\nAgree a rule in the team: one owner per app, deploying with their own transport. Several people deploying the same app through different transports is exactly how this class of conflict appears.\n\nFix `app.name` and `package` by convention on the very first deploy. Neither can be changed afterwards.",
   "refs": [
     "SAP Note 1797736",
     "SAP support component: CA-FLP-ABA-DT",
     "https://community.sap.com/t5/enterprise-resource-planning-q-a/s-4-hana-cloud-bas-issue-when-fiori-app-is-deployed-a-second-time/qaq-p/12813366",
-    "ADT Feed Reader → SAP Gateway Error Log",
-    "SLG1 client 000, object /UI5/APPIDX (chỉ admin backend)",
+    "ADT Feed Reader -> SAP Gateway Error Log",
+    "SLG1 in client 000, object /UI5/APPIDX (backend admin only)",
     "Object type: Launchpad App Descriptor Item (LADI)"
   ],
-  "rootCause": "Xung đột không nằm ở BSP application mà ở đối tượng LADI (Launchpad App Descriptor Item) sinh ra từ khối crossNavigation trong manifest.json.\n\nTên LADI lấy từ tên BSP repository, không phải từ semanticObject: repository ZQM04 → LADI ZQM04_UI5R. Khi LADI cùng tên đã tồn tại (hoặc từng tồn tại rồi bị undeploy) ở một package khác, bước Application Index từ chối ghi sang package mới.\n\nNếu việc xoá LADI trước đó nằm trong một transport chưa release, record package cũ vẫn còn trong object directory nên hệ thống vẫn đọc ra package cũ.",
-  "severity": "Blocker",
-  "solutions": [
-    {
-      "body": "Đã xác minh: deploy thành công ngay sau khi bỏ khối này.\n\nTạm comment/xoá crossNavigation trong webapp/manifest.json rồi npm run deploy. Không có inbound thì không sinh LADI, bước Application Index không còn gì để xung đột.\n\nApp chạy được qua URL trực tiếp:\n  https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html\n\nĐánh đổi: chưa có tile trên Fiori Launchpad. Dùng khi cần unblock trong ngày.",
-      "label": "Gỡ crossNavigation khỏi manifest.json để deploy ngay",
-      "recommended": true
-    },
-    {
-      "body": "Chưa xác minh trên hệ thống này.\n\n1. ADT (Eclipse) → Ctrl+Shift+A → gõ <APPNAME>_UI5R\n2. Ghi lại Package và Transport của object\n3. Delete → gán vào transport của bạn → Activate\n4. Khôi phục crossNavigation trong manifest.json\n5. npm run deploy\n\nCần quyền xoá object (Developer Extensibility role). Nếu LADI nằm trong transport của người khác và TR đó chưa release, bạn sẽ không xoá được — phải nhờ chủ TR release hoặc tự xoá.\n\nLưu ý: có báo cáo trên SAP Community rằng thao tác xoá LADI thủ công trong Eclipse bị chặn trên S/4HANA Public Cloud (thông báo đại ý \"SAP GUI is not supported in project\"). Nếu gặp, chuyển sang cách C5.",
-      "label": "Xoá LADI cũ trong ADT rồi khôi phục crossNavigation"
-    },
-    {
-      "body": "Chưa xác minh.\n\nÁp dụng khi LADI đã bị undeploy nhưng lệnh xoá còn nằm trong TR chưa release. Tìm TR đó trong Transport Organizer, release qua app \"Export Software Collection\", rồi deploy lại.\n\nCảnh báo: release sẽ đẩy toàn bộ object trong TR sang hệ thống tiếp theo. Kiểm tra nội dung TR trước, đặc biệt khi TR thuộc người khác.",
-      "label": "Release transport chứa lệnh xoá LADI"
-    },
-    {
-      "body": "Chưa xác minh.\n\nĐổi app.name trong ui5-deploy.yaml (VD ZQM04 → ZQM04A) → LADI mới ZQM04A_UI5R, không đụng object cũ. Giữ nguyên crossNavigation.\n\nĐánh đổi: URL đổi, phải gán lại Business Catalog / Business Role, và app cũ để lại làm rác trong hệ thống. Chỉ dùng khi không có quyền ADT và không liên hệ được chủ transport.",
-      "label": "Đổi tên BSP app để sinh LADI mới"
-    },
-    {
-      "body": "Chưa xác minh kết quả.\n\nĐây là vấn đề đã được báo cáo trên SAP Community: redeploy lần thứ hai một Fiori app lên S/4HANA Cloud gặp lỗi liên quan LADI, và việc xoá thủ công bị chặn. Thread đó không có lời giải — khuyến nghị duy nhất là mở incident với SAP.\n\nComponent: CA-FLP-ABA-DT\n\nKèm theo khi mở ticket:\n- toàn bộ log deploy (bật log: 5)\n- tên repository, package, transport\n- Transaction ID từ Gateway Error Log\n- các cách đã thử và kết quả\n\nDùng khi C2 và C3 đều không thực hiện được và bạn muốn giữ nguyên tên app.",
-      "label": "Mở SAP incident — component CA-FLP-ABA-DT"
-    }
-  ],
-  "status": "Đang điều tra",
-  "symptom": "npm run deploy thất bại với HTTP 400. Trong log, phần upload BSP chạy bình thường, lỗi rơi đúng ở bước Application Index:\n\n  Updating existing SAPUI5 ABAP repository ZQM04\n  * Updating the Application Index *\n  error Error updating LADIs for UI5 repository ZQM04, package ZQM04, transport HL8Kxxxxxx\n  info  Inbound ZQM04-display was converted to LADI ZQM04_UI5R\n  error SAPUI5 application can only be deployed to the previous package ZQM\n\nĐặc điểm nhận dạng: đổi package trong ui5-deploy.yaml không làm thay đổi thông báo, đổi transport cũng không.",
-  "title": "Deploy Fiori báo \"can only be deployed to the previous package\" dù package trong yaml đã đúng",
-  "updatedAt": "2026-09-17T10:20:00.000Z",
-  "verified": true
+  "createdAt": "2026-09-16T10:00:00.000Z",
+  "updatedAt": "2026-09-17T10:20:00.000Z"
 }

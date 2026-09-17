@@ -1,36 +1,36 @@
 {
-  "createdAt": "2026-09-17T08:45:00.000Z",
+  "title": "App deploys fine but cannot reach its OData service",
   "module": "Integration / OData",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "404",
     "403",
     "Communication Arrangement"
   ],
-  "prevention": "Tách rõ cấu hình mock (ui5-mock.yaml) và cấu hình thật. Trước khi bàn giao, luôn test app trên tenant thật bằng tài khoản của người dùng cuối, không phải tài khoản developer.",
-  "refs": [
-    "Fiori app: Communication Arrangements",
-    "manifest.json → sap.app.dataSources"
-  ],
-  "rootCause": "Chưa xác minh. Khả năng thường gặp:\n- Service chưa được publish/activate trên tenant\n- Thiếu Communication Arrangement (với service tự phát triển trên Public Cloud)\n- User thiếu authorization cho service\n- dataSource trong manifest.json trỏ sai uri",
-  "severity": "Cao",
+  "symptom": "The app renders but shows no data. The network tab reports 404 or 403 on /sap/opu/odata/...\n\nIt works locally (npm start) because the request goes through the ui5 middleware proxy.",
+  "rootCause": "Not verified. Common possibilities:\n- the service is not published/activated on the tenant\n- a Communication Arrangement is missing (for custom services on Public Cloud)\n- the user lacks authorization for the service\n- the `dataSource` uri in manifest.json points somewhere wrong",
   "solutions": [
     {
-      "body": "Lấy uri từ sap.app.dataSources trong manifest.json, ghép với host tenant và mở trực tiếp sau khi đã đăng nhập.\n\n- 404 → service chưa tồn tại / chưa activate\n- 403 → service có nhưng user thiếu quyền\n- 200 → vấn đề nằm ở phía app, kiểm tra manifest",
-      "label": "Gọi thẳng service URL trên trình duyệt",
-      "recommended": true
+      "label": "Call the service URL directly in the browser",
+      "recommended": true,
+      "body": "Take the uri from sap.app.dataSources in manifest.json, prepend the tenant host, and open it after signing in.\n\n- 404 -> the service does not exist or is not activated\n- 403 -> the service exists but the user lacks authorization\n- 200 -> the problem is on the app side; check the manifest"
     },
     {
-      "body": "Chưa xác minh cho trường hợp cụ thể của bạn. Trên S/4HANA Public Cloud, service expose ra ngoài thường cần Communication Scenario + Communication Arrangement tương ứng. Kiểm tra qua app Communication Arrangements.",
-      "label": "Kiểm tra Communication Arrangement"
+      "label": "Check the Communication Arrangement",
+      "body": "Not verified for your specific case. On S/4HANA Public Cloud, exposing a service usually requires a matching Communication Scenario and Communication Arrangement. Check via the Communication Arrangements app."
     },
     {
-      "body": "Mở manifest.json của bản đã deploy (qua URL app) và so với bản trong repo. Nếu uri khác nhau, build đang dùng cấu hình mock hoặc dist cũ.",
-      "label": "Đối chiếu manifest local vs deployed"
+      "label": "Diff the deployed manifest against the repo",
+      "body": "Open the manifest.json of the deployed app (through the app URL) and compare it with the one in the repository. Different uris mean the build used a mock configuration or a stale dist folder."
     }
   ],
-  "status": "Mở",
-  "symptom": "App load được giao diện nhưng không có dữ liệu. Network tab báo 404 hoặc 403 trên đường dẫn /sap/opu/odata/....\n\nChạy local (npm start) thì bình thường vì đi qua proxy của ui5 middleware.",
-  "title": "App deploy xong nhưng không gọi được OData service",
-  "updatedAt": "2026-09-17T09:15:00.000Z",
-  "verified": false
+  "prevention": "Keep the mock configuration (ui5-mock.yaml) clearly separate from the real one. Before handover, always test the app on the real tenant with an end-user account, not a developer account.",
+  "refs": [
+    "Fiori app: Communication Arrangements",
+    "manifest.json -> sap.app.dataSources"
+  ],
+  "createdAt": "2026-09-17T08:45:00.000Z",
+  "updatedAt": "2026-09-17T09:15:00.000Z"
 }

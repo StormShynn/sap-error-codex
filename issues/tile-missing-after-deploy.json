@@ -1,28 +1,28 @@
 {
-  "createdAt": "2026-09-17T08:20:00.000Z",
+  "title": "Deploy succeeds but no tile appears on the Fiori Launchpad",
   "module": "SAP Fiori / UI5",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [],
-  "prevention": "Đưa 4 bước trên vào Definition of Done của mỗi app Fiori. Deploy thành công không đồng nghĩa với app đã dùng được.",
+  "symptom": "The deploy reports success and the app runs at its direct URL (/sap/bc/ui5_ui5/sap/<app>/index.html), but users do not see a tile in the Launchpad.",
+  "rootCause": "Not fully verified. Deploy only creates the BSP app and the LADI; a visible tile additionally requires the whole assignment chain: LADI -> Business Catalog -> Business Role -> Business User.\n\nTwo common breaks:\n- manifest.json has no crossNavigation, so no LADI is generated\n- the LADI exists but was never added to a catalog or role",
+  "solutions": [
+    {
+      "label": "Walk the assignment chain in order",
+      "recommended": true,
+      "body": "1. Does manifest.json contain sap.app.crossNavigation.inbounds?\n2. Does LADI <APPNAME>_UI5R exist in ADT?\n3. Custom Catalog Extensions app: has the app been added to a Business Catalog?\n4. Maintain Business Roles app: has that catalog been assigned to the user's role?\n\nStop at the first step that fails — later steps are meaningless until it passes."
+    },
+    {
+      "label": "Clear the user's Launchpad cache",
+      "body": "Not verified. If everything is assigned correctly and the tile still does not appear, sign out and back in, or open the Launchpad in a private window to rule out browser caching."
+    }
+  ],
+  "prevention": "Put those four steps in the Definition of Done for every Fiori app. A successful deploy does not mean a usable app.",
   "refs": [
     "Fiori app: Custom Catalog Extensions",
     "Fiori app: Maintain Business Roles"
   ],
-  "rootCause": "Chưa xác minh đầy đủ. Deploy chỉ tạo BSP app và LADI; việc hiển thị tile còn phụ thuộc chuỗi gán quyền: LADI → Business Catalog → Business Role → Business User.\n\nHai khả năng thường gặp:\n- manifest.json không có crossNavigation nên không sinh LADI\n- LADI có nhưng chưa được gán vào catalog/role",
-  "severity": "Cao",
-  "solutions": [
-    {
-      "body": "1. manifest.json có khối sap.app.crossNavigation.inbounds không?\n2. LADI <APPNAME>_UI5R có tồn tại trong ADT không?\n3. Fiori app \"Custom Catalog Extensions\": app đã được thêm vào Business Catalog chưa?\n4. Fiori app \"Maintain Business Roles\": catalog đó đã gán vào role của người dùng chưa?\n\nDừng ở bước đầu tiên fail — các bước sau không có ý nghĩa nếu bước trước chưa xong.",
-      "label": "Kiểm tra chuỗi gán quyền theo thứ tự",
-      "recommended": true
-    },
-    {
-      "body": "Chưa xác minh. Nếu mọi thứ đã gán đúng nhưng tile vẫn chưa hiện, thử đăng xuất/đăng nhập lại hoặc mở Launchpad ở cửa sổ ẩn danh để loại trừ cache trình duyệt.",
-      "label": "Xóa cache Launchpad của người dùng"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy báo thành công, mở URL trực tiếp /sap/bc/ui5_ui5/sap/<app>/index.html thì app chạy, nhưng người dùng không thấy tile trong Launchpad.",
-  "title": "Deploy thành công nhưng không thấy tile trên Fiori Launchpad",
-  "updatedAt": "2026-09-17T09:10:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T08:20:00.000Z",
+  "updatedAt": "2026-09-17T09:10:00.000Z"
 }

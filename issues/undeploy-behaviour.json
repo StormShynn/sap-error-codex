@@ -1,28 +1,28 @@
 {
-  "createdAt": "2026-09-17T08:40:00.000Z",
+  "title": "undeploy leaves secondary objects behind — the app is gone but the next deploy still conflicts",
   "module": "SAP Fiori / UI5",
+  "severity": "High",
+  "status": "Investigating",
+  "verified": false,
   "msgKeys": [],
-  "prevention": "Coi undeploy là thao tác có hậu quả kéo dài, không phải \"xóa cho sạch rồi làm lại\". Nếu chỉ cần đổi nội dung app, deploy đè thay vì undeploy.\n\nKhi buộc phải undeploy: dùng transport của chính mình, ghi lại mã TR, và release nó trước khi deploy lại cùng tên app.",
+  "symptom": "After `npm run undeploy` the BSP app is gone, yet the next deploy still fails with a package or LADI error naming that same app.",
+  "rootCause": "Not verified. Hypothesis: undeploy removes the BSP repository, but the deletion of secondary objects — the LADI in particular — is recorded in a transport. While that transport stays unreleased, the old record remains in the object directory and collides on the next deploy.",
+  "solutions": [
+    {
+      "label": "Check for leftover objects before deploying again",
+      "recommended": true,
+      "body": "After every undeploy, look in ADT for:\n- BSP application <APPNAME>\n- LADI <APPNAME>_UI5R\n\nNote the package and transport of anything still sitting in a deleted-pending state."
+    },
+    {
+      "label": "Release the transport carrying the deletion before redeploying",
+      "body": "Not verified. Release the transport so the deletion is committed, then deploy again.\n\nReview the transport contents first — it may carry someone else's objects."
+    }
+  ],
+  "prevention": "Treat undeploy as an operation with lasting consequences, not a clean slate. If you only need to change the app content, deploy over it instead.\n\nWhen you must undeploy: use your own transport, write down the number, and release it before deploying the same app name again.",
   "refs": [
     "fiori undeploy --config ui5-deploy.yaml",
     "ADT Transport Organizer"
   ],
-  "rootCause": "Chưa xác minh. Giả thuyết: undeploy xoá BSP repository nhưng lệnh xoá các object phụ (đặc biệt LADI) được ghi vào transport; chừng nào TR đó chưa release, record cũ trong object directory vẫn còn và gây xung đột ở lần deploy tiếp theo.",
-  "severity": "Cao",
-  "solutions": [
-    {
-      "body": "Sau mỗi undeploy, tìm trong ADT:\n- BSP application <APPNAME>\n- LADI <APPNAME>_UI5R\n\nGhi lại package và transport của bất kỳ object nào còn ở trạng thái deleted-pending.",
-      "label": "Kiểm tra object còn sót trước khi deploy lại",
-      "recommended": true
-    },
-    {
-      "body": "Chưa xác minh. Release TR để việc xoá được ghi nhận dứt điểm, rồi mới deploy lại.\n\nKiểm tra nội dung TR trước khi release — có thể chứa object của người khác.",
-      "label": "Release transport chứa lệnh xoá trước khi deploy lại"
-    }
-  ],
-  "status": "Đang điều tra",
-  "symptom": "Sau khi chạy npm run undeploy, BSP app không còn, nhưng lần deploy sau vẫn vướng lỗi liên quan đến package hoặc LADI của chính app đó.",
-  "title": "undeploy không dọn hết — app biến mất nhưng object phụ còn lại",
-  "updatedAt": "2026-09-17T09:14:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T08:40:00.000Z",
+  "updatedAt": "2026-09-17T09:14:00.000Z"
 }

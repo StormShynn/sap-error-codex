@@ -1,37 +1,37 @@
 {
-  "createdAt": "2026-09-17T08:30:00.000Z",
+  "title": "Deploy to S/4HANA Public Cloud fails at authentication (reentranceTicket)",
   "module": "Basis / Auth",
+  "severity": "High",
+  "status": "Open",
+  "verified": false,
   "msgKeys": [
     "401",
     "403",
     "reentranceTicket",
     "destination"
   ],
-  "prevention": "Ghi rõ trong README của project: môi trường nào dùng destination, môi trường nào dùng url, và danh sách role cần có để deploy.",
+  "symptom": "The deploy stops before the upload phase, or the browser opens and never returns, or it reports 401/403.",
+  "rootCause": "Not verified. Possibilities: an expired session, a misconfigured BTP destination, declaring both `destination` and `url` so the target is ambiguous, or the business user missing the Developer Extensibility role.",
+  "solutions": [
+    {
+      "label": "Declare one target source, not two",
+      "recommended": true,
+      "body": "The deploy tooling prefers `destination` over `url`. For local development in VS Code with reentranceTicket you usually only need:\n\n  target:\n    url: https://<tenant>.s4hana.cloud.sap\n    authenticationType: reentranceTicket\n\nUse `destination` when running through BTP or CI. Declaring both makes debugging ambiguous."
+    },
+    {
+      "label": "Check the business user's role",
+      "body": "The deploying user needs a Business Role containing the Developer Extensibility catalog (related to SAP_CORE_BC_EXT_TST). Ask an admin to check via the Maintain Business Roles app."
+    },
+    {
+      "label": "Sign in to the tenant before deploying",
+      "body": "Open the tenant in a browser and sign in first, so the reentrance ticket has a valid session to pick up."
+    }
+  ],
+  "prevention": "State it plainly in the project README: which environment uses `destination`, which uses `url`, and which roles are required to deploy.",
   "refs": [
     "SAP BTP Destination configuration",
     "Fiori app: Maintain Business Roles"
   ],
-  "rootCause": "Chưa xác minh. Khả năng: phiên đăng nhập hết hạn, destination trong BTP sai cấu hình, khai cả destination lẫn url gây nhầm lẫn target, hoặc business user thiếu role Developer Extensibility.",
-  "severity": "Cao",
-  "solutions": [
-    {
-      "body": "Deploy tooling ưu tiên destination hơn url. Khi phát triển local trong VS Code với reentranceTicket, thường chỉ cần url:\n\n  target:\n    url: https://<tenant>.s4hana.cloud.sap\n    authenticationType: reentranceTicket\n\nKhi chạy qua BTP/CI thì dùng destination. Khai cả hai dễ gây nhầm lẫn khi debug.",
-      "label": "Kiểm tra target: chỉ khai một nguồn",
-      "recommended": true
-    },
-    {
-      "body": "User deploy cần Business Role chứa catalog Developer Extensibility (liên quan SAP_CORE_BC_EXT_TST). Nhờ admin kiểm tra qua app Maintain Business Roles.",
-      "label": "Kiểm tra role của business user"
-    },
-    {
-      "body": "Mở tenant trong trình duyệt và đăng nhập trước, sau đó chạy deploy để reentrance ticket lấy được phiên hợp lệ.",
-      "label": "Đăng nhập lại tenant trước khi deploy"
-    }
-  ],
-  "status": "Mở",
-  "symptom": "Deploy dừng trước khi vào giai đoạn upload, hoặc trình duyệt mở ra rồi không quay về được, hoặc báo 401/403.",
-  "title": "Deploy lên S/4HANA Public Cloud fail ở bước xác thực (reentranceTicket)",
-  "updatedAt": "2026-09-17T09:12:00.000Z",
-  "verified": false
+  "createdAt": "2026-09-17T08:30:00.000Z",
+  "updatedAt": "2026-09-17T09:12:00.000Z"
 }
