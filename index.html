@@ -312,6 +312,27 @@
   .repo-link:hover{color:var(--accent)}
   .refs a{color:var(--accent);text-decoration:none;word-break:break-all}
   .refs a:hover{text-decoration:underline}
+
+  /* ---------- Google Website Translate widget ---------- */
+  body { top: 0 !important; }
+  /* The top banner iframe has no stable class across widget versions;
+     its id is a Closure UID ending in ".container", unlike the language menu iframes. */
+  iframe[id$=".container"] { display: none !important; visibility: hidden !important; height: 0 !important; }
+  #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+  .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+  .goog-text-highlight { background: none !important; box-shadow: none !important; }
+  .gtranslate { line-height: 0; }
+  .gtranslate .goog-te-gadget { font-family: var(--sans); font-size: 0; color: transparent; }
+  .gtranslate .goog-te-gadget > span > a { display: none !important; }
+  .gtranslate .goog-te-combo {
+    font-family: var(--sans); font-size: 12.5px; color: var(--ink);
+    background: var(--surface-sunk); border: 1px solid var(--line-strong);
+    border-radius: 6px; padding: 6px 8px; cursor: pointer;
+  }
+  .gt-group { display: flex; align-items: center; gap: 6px; }
+  .gt-note {
+    font-size: 11px; color: var(--ink-faint); white-space: nowrap; cursor: help;
+  }
 </style>
 </head>
 <body>
@@ -329,6 +350,10 @@
       <input id="q" type="text" placeholder="Search: LADI, /UI2/UI5_REP_LOAD, 403, transport&hellip;" autocomplete="off" aria-label="Search errors">
     </div>
     <div class="topbar-actions">
+      <div class="gt-group">
+        <div id="google_translate_element" class="gtranslate"></div>
+        <span class="gt-note" title="Automatic translation via Google Translate. It translates progressively as you scroll, so lower sections may briefly still show English right after switching language. Technical terms (transaction codes, message IDs, commands) are never altered by translation.">Auto-translated &#9432;</span>
+      </div>
       <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">loading</span></span>
       <a class="repo-link" id="repoLink" href="#" target="_blank" rel="noopener">Contribute on GitHub &rarr;</a>
     </div>
@@ -369,6 +394,23 @@
     var n = document.createElement(tag);
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
+    return n;
+  }
+  // The Google Translate widget replaces a translated block's entire
+  // innerHTML (it does not preserve "\n" text, <br> children, or even
+  // inline elements styled with display:block inside one element — it
+  // flattens all of those the same way). Real block-level elements
+  // (<div>) are the one boundary it keeps intact, so each line has to be
+  // its own <div> for the break to survive translation.
+  function elLines(tag, cls, text) {
+    var n = document.createElement("div");
+    if (cls) n.className = cls;
+    var lines = String(text == null ? "" : text).split("\n");
+    lines.forEach(function (line) {
+      var row = document.createElement("div");
+      row.textContent = line || " ";
+      n.appendChild(row);
+    });
     return n;
   }
   function when(ts) {
@@ -492,8 +534,8 @@
     }
     doc.appendChild(head);
 
-    if (it.symptom)   doc.appendChild(section("Symptom", el("p", "prose", it.symptom)));
-    if (it.rootCause) doc.appendChild(section("Cause", el("p", "prose", it.rootCause)));
+    if (it.symptom)   doc.appendChild(section("Symptom", elLines("p", "prose", it.symptom)));
+    if (it.rootCause) doc.appendChild(section("Cause", elLines("p", "prose", it.rootCause)));
 
     if (it.solutions && it.solutions.length) {
       var wrap = el("div");
@@ -504,12 +546,12 @@
         fh.appendChild(el("span", "fix-label", s.label || ""));
         if (s.recommended) fh.appendChild(el("span", "fix-rec", "Recommended"));
         f.appendChild(fh);
-        f.appendChild(el("p", "prose", s.body || ""));
+        f.appendChild(elLines("p", "prose", s.body || ""));
         wrap.appendChild(f);
       });
       doc.appendChild(section("Fixes", wrap));
     }
-    if (it.prevention) doc.appendChild(section("Preventing a repeat", el("p", "prose muted", it.prevention)));
+    if (it.prevention) doc.appendChild(section("Preventing a repeat", elLines("p", "prose muted", it.prevention)));
     if (it.refs && it.refs.length) {
       var ul = el("ul", "refs");
       it.refs.forEach(function (r) {
@@ -569,5 +611,16 @@
     });
 })();
 </script>
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: "en",
+      includedLanguages: "vi,en,zh-CN,ja,ko,de,fr,es,pt,ru,th,id",
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, "google_translate_element");
+  }
+</script>
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
