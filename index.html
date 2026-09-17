@@ -189,6 +189,7 @@
   .tag.unverified   { background: var(--warn-soft); color: var(--warn); }
 
   .empty { padding: 48px 24px; text-align: center; color: var(--ink-faint); }
+  .empty .btn { display: inline-block; margin-top: 14px; }
 
   /* ---------- detail content ---------- */
   .doc { max-width: 860px; margin: 0 auto; padding: 26px 28px 80px; }
@@ -378,6 +379,10 @@
 (function () {
   "use strict";
   var REPO = "https://github.com/StormShynn/sap-error-codex";
+  // Opens a normal GitHub issue (pre-filled with the search query) for a maintainer
+  // to handle by hand. Independent of the auto-drafting bot in
+  // .github/workflows-draft/, which stays inactive until reactivated.
+  var ENABLE_REQUEST_CTA = true;
   var MODULES  = ["SAP Fiori / UI5", "ABAP / Extensibility", "Transport & Release", "Integration / OData", "Power BI", "Microsoft Fabric", "Basis / Auth", "SAP Business One"];
   var SEVS     = ["Blocker", "High", "Medium", "Low"];
   var STATUSES = ["Open", "Investigating", "Resolved"];
@@ -474,7 +479,19 @@
     var list = $("list"); list.textContent = "";
     if (!rows.length) {
       var e = el("div", "empty");
-      e.appendChild(el("p", null, state.issues.length ? "Nothing matches these filters." : "Loading…"));
+      if (!state.issues.length) {
+        e.appendChild(el("p", null, "Loading…"));
+      } else if (state.q) {
+        e.appendChild(el("p", null, "Nothing matches “" + state.q + "” yet."));
+        if (ENABLE_REQUEST_CTA) {
+          var cta = el("a", "btn btn-primary", "Request this error be added");
+          cta.href = REPO + "/issues/new?template=new-issue.yml&title=" + encodeURIComponent(state.q);
+          cta.target = "_blank"; cta.rel = "noopener";
+          e.appendChild(cta);
+        }
+      } else {
+        e.appendChild(el("p", null, "Nothing matches these filters."));
+      }
       list.appendChild(e);
     }
     rows.forEach(function (it) {

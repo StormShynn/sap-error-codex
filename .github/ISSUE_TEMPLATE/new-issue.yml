@@ -30,6 +30,7 @@ body:
         - Power BI
         - Microsoft Fabric
         - Basis / Auth
+        - SAP Business One
     validations:
       required: true
 

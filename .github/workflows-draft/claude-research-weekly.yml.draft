@@ -1,0 +1,112 @@
+name: Weekly research for a new error entry
+
+# Runs on a schedule (and can be run manually) to keep growing the reference
+# even when nobody happens to file an issue that week. Claude picks ONE real,
+# well-documented SAP Fiori/UI5, ABAP (classic or Cloud), Basis, or SAP
+# Business One error not yet covered, drafts it, and opens a PR.
+#
+# Same safety rule as claude-draft-from-issue.yml: never pushes to main,
+# never merges itself. A human maintainer reviews every entry before it
+# reaches data/issues.json.
+#
+# NOTE: schedule/cron isn't listed among the "custom automation" examples in
+# claude-code-action's docs, but the action only reacts to the `prompt`
+# input regardless of what triggered the workflow run, so a schedule trigger
+# should behave the same as workflow_dispatch here. [Unverified beyond that
+# reasoning - test with a manual "Run workflow" click first before trusting
+# the cron.]
+#
+# Setup required (cannot be done from within the repo):
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#   named ANTHROPIC_API_KEY.
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # 03:00 UTC every Monday
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: claude-research-weekly
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git identity
+        run: |
+          git config --global user.email "claude[bot]@users.noreply.github.com"
+          git config --global user.name "claude[bot]"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Research and draft one new entry
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: "--allowedTools 'Read,Grep,Glob,Edit,Write,WebSearch,WebFetch,Bash(git:*),Bash(gh:*),Bash(python3:*)'"
+          prompt: |
+            REPO: ${{ github.repository }}
+            RUN_ID: ${{ github.run_id }}
+
+            You are growing this repo's SAP / ABAP / SAP Business One
+            deployment-and-runtime error reference (issues/*.json -> built by
+            scripts/build.py into data/issues.json -> rendered by index.html).
+
+            STEP 1 - read first, don't guess:
+            - Read CONTRIBUTING.md and scripts/build.py in full. build.py's MODULES,
+              SEVERITIES, STATUSES sets and its check() function are the actual rules
+              a human reviewer will hold your output to.
+            - List issues/*.json and note every title/id already covered, across all
+              modules (SAP Fiori / UI5, ABAP / Extensibility, Transport & Release,
+              Integration / OData, Basis / Auth, SAP Business One, Power BI,
+              Microsoft Fabric).
+
+            STEP 2 - find ONE real, well-documented error not yet covered:
+            - Use WebSearch/WebFetch against SAP Notes/KBAs, SAP Help, SAP Community,
+              or reputable SAP blogs. Prefer errors that look genuinely common
+              (multiple independent sources/threads) over obscure one-off reports.
+            - You must be able to cite an actual source URL or SAP Note/KBA number for
+              the symptom text and at least one fix. If you cannot find one you can back
+              this way within your available turns, do NOT invent one - end your run
+              without opening a PR and say so in your final message.
+            - If a cause can't be confirmed from your sources, write the rootCause field
+              starting with "Not verified. Possibly: " and say what you checked, per
+              CONTRIBUTING.md's "don't guess" rule.
+            - Never put a real hostname, tenant ID, username, client, or transport number
+              in any field - use placeholders like <host>, <TRANSPORT>, <company-db>.
+
+            STEP 3 - write the file:
+            - Create exactly one file at issues/<kebab-case-id>.json (id = lowercase,
+              hyphenated, describing the symptom, not the app name) with the fields
+              title, module, severity, status, verified, msgKeys, symptom, rootCause,
+              solutions (array of {label, recommended?, body} - at most ONE item across
+              the array may have recommended: true), prevention, refs, createdAt and
+              updatedAt (both today's date in ISO 8601).
+            - Run `python3 scripts/build.py`. If it reports errors, fix the file and
+              re-run until it exits 0 - do not proceed while it fails.
+
+            STEP 4 - open a PR, never merge:
+            - Create a new branch named claude/weekly-<run id>-<short-slug>.
+            - Commit the new issues/*.json file together with the regenerated
+              data/issues.json.
+            - Open a pull request with `gh pr create` titled "Add: <error title>",
+              whose body names the module and lists the real sources you verified
+              against, plus which parts (if any) are marked unverified/possibly.
+            - Do not merge the PR yourself and do not push to main directly - a human
+              maintainer reviews and merges it, per this repo's review process.
