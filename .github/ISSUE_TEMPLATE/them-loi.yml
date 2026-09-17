@@ -67,7 +67,7 @@ body:
     id: rootcause
     attributes:
       label: Root cause
-      description: If unsure, write "Not verified. Possibly: ..."
+      description: 'If unsure, write "Not verified. Possibly: ..."'
 
   - type: textarea
     id: solution
