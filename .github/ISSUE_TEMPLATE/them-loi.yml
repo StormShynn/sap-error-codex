@@ -1,0 +1,83 @@
+name: Thêm lỗi mới
+description: Báo một lỗi triển khai chưa có trong kho
+title: "[Lỗi] "
+labels: ["loi-moi"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Đừng đưa hostname, tenant ID, tên người dùng hay transport number thật vào đây.
+        Thay bằng placeholder: `<host>`, `<appname>`, `<TRANSPORT>`.
+
+  - type: input
+    id: title
+    attributes:
+      label: Hiện tượng
+      description: Một câu, mô tả đúng thứ người dùng nhìn thấy
+      placeholder: Deploy fail 400 ở bước Application Index dù package đã đúng
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Mảng
+      options:
+        - SAP Fiori / UI5
+        - ABAP / Extensibility
+        - Transport & Release
+        - Integration / OData
+        - Power BI
+        - Microsoft Fabric
+        - Basis / Auth
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Mức độ
+      options:
+        - Blocker
+        - Cao
+        - Trung bình
+        - Thấp
+    validations:
+      required: true
+
+  - type: input
+    id: msgkeys
+    attributes:
+      label: Message ID / mã lỗi
+      description: Ngăn cách bằng dấu phẩy. Đây là thứ người sau sẽ dùng để tìm.
+      placeholder: /UI2/UI5_REP_LOAD-039, HTTP 400
+    validations:
+      required: true
+
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Log
+      description: Dán nguyên văn dòng log quyết định, đừng diễn giải lại
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: rootcause
+    attributes:
+      label: Nguyên nhân
+      description: Nếu chưa chắc, ghi rõ "Chưa xác minh. Khả năng: ..."
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Cách xử lý
+      description: Các bước cụ thể, kèm lệnh hoặc đường dẫn transaction. Nêu cả cái giá phải trả.
+
+  - type: checkboxes
+    id: verified
+    attributes:
+      label: Xác minh
+      options:
+        - label: Tôi đã chạy cách xử lý này trên hệ thống thật và nó hoạt động

@@ -1,0 +1,32 @@
+{
+  "createdAt": "2026-09-17T10:05:00.000Z",
+  "module": "Basis / Auth",
+  "msgKeys": [
+    "unable to get local issuer certificate",
+    "SELF_SIGNED_CERT_IN_CHAIN",
+    "strictSsl"
+  ],
+  "prevention": "Phát file CA nội bộ và hướng dẫn đặt NODE_EXTRA_CA_CERTS trong tài liệu onboarding, thay vì để từng người tự tắt strictSsl.",
+  "refs": [
+    "https://github.com/SAP/ui5-tooling/issues/646",
+    "Node.js NODE_EXTRA_CA_CERTS"
+  ],
+  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Node.js không tin chứng chỉ do CA nội bộ cấp vì CA đó không nằm trong trữc CA mặc định của Node.",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Xin file CA của công ty từ IT, rồi:\n\n  export NODE_EXTRA_CA_CERTS=/đường/dẫn/company-ca.pem\n  npm run deploy\n\nWindows PowerShell:\n  $env:NODE_EXTRA_CA_CERTS=\"C:\\path\\company-ca.pem\"\n\nĐây là cách đúng: vẫn xác thực TLS đầy đủ, chỉ bổ sung CA đáng tin.",
+      "label": "Khai CA nội bộ cho Node.js",
+      "recommended": true
+    },
+    {
+      "body": "Trong ui5-deploy.yaml:\n\n  configuration:\n    strictSsl: false\n\nhoặc CLI: --noConfigUpdate --strictSsl false\n\nKHÔNG dùng trên CI/CD hay môi trường chung, và không commit cấu hình này vào nhánh chính — nó vô hiệu hoá việc xác thực danh tính máy chủ.",
+      "label": "Tắt kiểm tra chứng chỉ (chỉ cho DEV local)"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy fail với lỗi chứng chỉ TLS, thường là \"unable to get local issuer certificate\" hoặc \"self signed certificate in certificate chain\".\n\nHay gặp với hệ thống on-premise dùng chứng chỉ nội bộ của công ty.",
+  "title": "unable to get local issuer certificate khi deploy từ VS Code",
+  "updatedAt": "2026-09-17T10:05:00.000Z",
+  "verified": false
+}

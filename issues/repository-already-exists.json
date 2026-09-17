@@ -1,0 +1,35 @@
+{
+  "createdAt": "2026-09-17T10:06:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "already exists",
+    "Repositories"
+  ],
+  "prevention": "Lập bảng đăng ký tên app của team (tên — package — chủ sở hữu — môi trường) và kiểm tra trước khi đặt tên app mới. Đặt tiền tố theo module: ZQM01, ZQM02…",
+  "refs": [
+    "https://community.sap.com/t5/technology-q-a/bas-gt-deployment-quot-sapui5-abap-repository-with-name-z-already-exists/qaq-p/12593109",
+    "OData: /UI5/ABAP_REPOSITORY_SRV/Repositories"
+  ],
+  "rootCause": "Chưa xác minh. Tên BSP repository là duy nhất trên toàn hệ thống. Khả năng: đồng nghiệp đã deploy app cùng tên, hoặc app cũ từ dự án trước còn sót lại.\n\nPhân biệt với lỗi LADI package conflict: lỗi này chặn ở bước tạo repository (POST), còn LADI chặn ở bước Application Index sau khi upload đã xong.",
+  "severity": "Cao",
+  "solutions": [
+    {
+      "body": "Mở trên trình duyệt sau khi đăng nhập:\n\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/Repositories('<TEN_APP>')?$format=json\n\nKết quả cho biết Package, Description và ai tạo. Đây là nguồn đáng tin duy nhất — đừng đoán theo trí nhớ.",
+      "label": "Kiểm tra repository hiện có trên hệ thống",
+      "recommended": true
+    },
+    {
+      "body": "Nếu app cũ vẫn đang được dùng, đổi app.name trong ui5-deploy.yaml sang tên chưa tồn tại.",
+      "label": "Đổi tên app"
+    },
+    {
+      "body": "Giữ nguyên tên và khai đúng package mà repository đó đang thuộc về — deploy sẽ chuyển sang chế độ update thay vì create.\n\nLưu ý: package của một repository đã tạo thì không đổi được.",
+      "label": "Tiếp quản app cũ (nếu đúng là app của bạn)"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy lần đầu một app báo repository trùng tên đã tồn tại trên hệ thống, dù bạn chưa từng deploy app này.",
+  "title": "SAPUI5 ABAP Repository with name Z... already exists",
+  "updatedAt": "2026-09-17T10:06:00.000Z",
+  "verified": false
+}

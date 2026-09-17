@@ -1,0 +1,34 @@
+{
+  "createdAt": "2026-09-17T08:25:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "manifestEnhancer",
+    "supported locales"
+  ],
+  "prevention": "Khởi tạo project với đủ i18n.properties + i18n_en.properties ngay từ template, kể cả khi chưa làm đa ngôn ngữ.",
+  "refs": [
+    "UI5 Tooling → manifestEnhancer task"
+  ],
+  "rootCause": "Chưa xác minh. Project chỉ có i18n/i18n.properties (không hậu tố ngôn ngữ), trong khi UI5 tooling tính danh sách supported locales từ các file có hậu tố như i18n_en.properties, i18n_vi.properties. Danh sách rỗng nên không chứa 'en'.",
+  "severity": "Thấp",
+  "solutions": [
+    {
+      "body": "Tạo webapp/i18n/i18n_en.properties (có thể copy nội dung từ i18n.properties). Cần thêm tiếng Việt thì tạo thêm i18n_vi.properties.\n\nLợi ích phụ: tách được text đa ngôn ngữ ngay từ đầu thay vì hardcode.",
+      "label": "Tạo file i18n_en.properties",
+      "recommended": true
+    },
+    {
+      "body": "Chưa xác minh cú pháp chính xác cho phiên bản UI5 của bạn — kiểm tra tài liệu UI5 tương ứng trước khi áp dụng. Ý tưởng: cấu hình fallbackLocale trong sap.ui5.models.i18n.settings trỏ về locale thực sự có file.",
+      "label": "Khai fallbackLocale trong manifest.json"
+    },
+    {
+      "body": "Warning này không chặn build và không chặn deploy. Nếu app chỉ dùng một ngôn ngữ và không có kế hoạch đa ngôn ngữ, có thể chấp nhận — nhưng nó sẽ làm nhiễu log mỗi lần build.",
+      "label": "Bỏ qua"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Khi chạy ui5 build, xuất hiện warning lặp nhiều lần:\n\n  warn builder:processors:manifestEnhancer manifest.json: Generated supported locales ('') for bundle 'i18n/i18n.properties' do not contain default fallback locale 'en'. Either provide a properties file for 'en' or configure another available fallbackLocale\n\nBuild vẫn succeeded.",
+  "title": "Warning manifestEnhancer: supported locales không chứa fallback locale 'en'",
+  "updatedAt": "2026-09-17T09:11:00.000Z",
+  "verified": false
+}

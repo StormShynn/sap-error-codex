@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-09-17T10:04:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "type is unknown",
+    ".Ui5RepositoryTextFiles",
+    ".Ui5RepositoryBinaryFiles"
+  ],
+  "prevention": "Khi thêm loại asset mới vào project (font, icon, file cấu hình), kiểm tra nó có lên hệ thống không thay vì chỉ tin vào dòng \"Deployment successful\".",
+  "refs": [
+    "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
+  ],
+  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: phần đuôi file không nằm trong danh sách nhận dạng mặc định của SAPUI5 ABAP Repository nên upload bỏ qua.",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Tạo file trong thư mục webapp/:\n\n  .Ui5RepositoryTextFiles     — cho file dạng text (.json, .xml, .properties, .svg…)\n  .Ui5RepositoryBinaryFiles   — cho file nhị phân (.woff2, .png, .pdf…)\n\nMỗi dòng một đuôi file. Sau đó build và deploy lại.",
+      "label": "Khai đuôi file vào danh sách nhận dạng",
+      "recommended": true
+    },
+    {
+      "body": "Bật log: 5 trong ui5-deploy.yaml, xem phần \"Adding <file>\" khi tạo archive và phần * Operations * khi upload. File có trong archive nhưng không có trong Operations chính là file bị bỏ qua.",
+      "label": "Đối chiếu danh sách file trong archive"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy thành công nhưng một số file không lên hệ thống. Log deploy ghi file đó với ghi chú đại ý \"Not uploaded as binary/text type is unknown\".\n\nHệ quả: app chạy thiếu font, thiếu file cấu hình, hoặc lỗi 404 trên một resource cụ thể.",
+  "title": "File không được upload: \"Not uploaded as binary/text type is unknown\"",
+  "updatedAt": "2026-09-17T10:04:00.000Z",
+  "verified": false
+}

@@ -1,0 +1,36 @@
+{
+  "createdAt": "2026-09-17T08:45:00.000Z",
+  "module": "Integration / OData",
+  "msgKeys": [
+    "404",
+    "403",
+    "Communication Arrangement"
+  ],
+  "prevention": "Tách rõ cấu hình mock (ui5-mock.yaml) và cấu hình thật. Trước khi bàn giao, luôn test app trên tenant thật bằng tài khoản của người dùng cuối, không phải tài khoản developer.",
+  "refs": [
+    "Fiori app: Communication Arrangements",
+    "manifest.json → sap.app.dataSources"
+  ],
+  "rootCause": "Chưa xác minh. Khả năng thường gặp:\n- Service chưa được publish/activate trên tenant\n- Thiếu Communication Arrangement (với service tự phát triển trên Public Cloud)\n- User thiếu authorization cho service\n- dataSource trong manifest.json trỏ sai uri",
+  "severity": "Cao",
+  "solutions": [
+    {
+      "body": "Lấy uri từ sap.app.dataSources trong manifest.json, ghép với host tenant và mở trực tiếp sau khi đã đăng nhập.\n\n- 404 → service chưa tồn tại / chưa activate\n- 403 → service có nhưng user thiếu quyền\n- 200 → vấn đề nằm ở phía app, kiểm tra manifest",
+      "label": "Gọi thẳng service URL trên trình duyệt",
+      "recommended": true
+    },
+    {
+      "body": "Chưa xác minh cho trường hợp cụ thể của bạn. Trên S/4HANA Public Cloud, service expose ra ngoài thường cần Communication Scenario + Communication Arrangement tương ứng. Kiểm tra qua app Communication Arrangements.",
+      "label": "Kiểm tra Communication Arrangement"
+    },
+    {
+      "body": "Mở manifest.json của bản đã deploy (qua URL app) và so với bản trong repo. Nếu uri khác nhau, build đang dùng cấu hình mock hoặc dist cũ.",
+      "label": "Đối chiếu manifest local vs deployed"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "App load được giao diện nhưng không có dữ liệu. Network tab báo 404 hoặc 403 trên đường dẫn /sap/opu/odata/....\n\nChạy local (npm start) thì bình thường vì đi qua proxy của ui5 middleware.",
+  "title": "App deploy xong nhưng không gọi được OData service",
+  "updatedAt": "2026-09-17T09:15:00.000Z",
+  "verified": false
+}

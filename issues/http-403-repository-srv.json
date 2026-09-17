@@ -1,0 +1,39 @@
+{
+  "createdAt": "2026-09-17T10:00:00.000Z",
+  "module": "Basis / Auth",
+  "msgKeys": [
+    "HTTP 403",
+    "S_DEVELOP",
+    "/UI5/ABAP_REPOSITORY_SRV",
+    "/IWFND/MAINT_SERVICE"
+  ],
+  "prevention": "Đưa 2 điều kiện này vào checklist onboarding môi trường mới: service /UI5/ABAP_REPOSITORY_SRV đã activate, và user deploy có S_DEVELOP (hoặc role Developer Extensibility trên Cloud).",
+  "refs": [
+    "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md",
+    "https://www.itsfullofstars.de/2025/08/fiori-deploy-fails-with-http-403/",
+    "Transaction /IWFND/MAINT_SERVICE",
+    "Transaction SICF"
+  ],
+  "rootCause": "Hai nguyên nhân độc lập, cùng trả về 403:\n\n1. OData service /UI5/ABAP_REPOSITORY_SRV chưa được activate trên hệ thống ABAP. Hệ thống trả 403 thay vì 404 khi service không khả dụng — dễ gây hiểu nhầm thành lỗi phân quyền.\n2. User deploy thiếu authorization object S_DEVELOP trên hệ thống backend.\n\nChưa xác minh trên hệ thống của FPT IS — thông tin từ tài liệu SAP-samples và blog cộng đồng.",
+  "severity": "Blocker",
+  "solutions": [
+    {
+      "body": "1. Transaction: /n/IWFND/MAINT_SERVICE\n2. System Alias: LOCAL\n3. Technical Service Name: /UI5/*\n4. Get Services → chọn /UI5/ABAP_REPOSITORY_SRV → Add\n5. Gán package ($TMP nếu chỉ dùng cho DEV, hoặc package transportable)\n\nSau khi activate, service xuất hiện trong SICF tại:\n  /sap/opu/odata/ui5/abap_repository_srv\n\nKhông áp dụng cho S/4HANA Public Cloud — ở đó service đã có sẵn, xem cách 2.",
+      "label": "Activate service qua /IWFND/MAINT_SERVICE (hệ thống on-premise)",
+      "recommended": true
+    },
+    {
+      "body": "Nhờ Basis cấp authorization object S_DEVELOP trên hệ thống backend.\n\nTrên S/4HANA Public Cloud, tương đương là Business Role chứa catalog Developer Extensibility — kiểm tra qua app Maintain Business Roles.",
+      "label": "Cấp S_DEVELOP cho user deploy"
+    },
+    {
+      "body": "Mở trực tiếp trên trình duyệt sau khi đăng nhập:\n  https://<host>/sap/opu/odata/UI5/ABAP_REPOSITORY_SRV/?$format=json\n\n- 403 với cả user admin → service chưa activate\n- 403 chỉ với user của bạn → thiếu quyền",
+      "label": "Phân biệt 403 do service với 403 do quyền"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy dừng ngay từ đầu:\n\n  Error: request failed with status code 403.\n\nKhông vào được giai đoạn upload file.",
+  "title": "HTTP 403 khi deploy — service /UI5/ABAP_REPOSITORY_SRV chưa activate hoặc thiếu S_DEVELOP",
+  "updatedAt": "2026-09-17T10:00:00.000Z",
+  "verified": false
+}

@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-09-17T10:03:00.000Z",
+  "module": "Integration / OData",
+  "msgKeys": [
+    "HTTP 503",
+    "Service Unavailable",
+    "Cloud Connector"
+  ],
+  "prevention": "Khi setup môi trường cho thành viên mới, kiểm tra kết nối Cloud Connector trước khi giao việc deploy.",
+  "refs": [
+    "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
+  ],
+  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: SAP Cloud Connector không kết nối được tới hệ thống backend on-premise.",
+  "severity": "Cao",
+  "solutions": [
+    {
+      "body": "1. Mở Cloud Connector admin UI, xác nhận subaccount đang Connected\n2. Kiểm tra Cloud To On-Premise → hệ thống backend có trong danh sách và đúng virtual host\n3. Dùng chức năng Check Availability của Cloud Connector",
+      "label": "Kiểm tra trạng thái Cloud Connector",
+      "recommended": true
+    },
+    {
+      "body": "Tường lửa hoặc proxy của công ty có thể chặn kết nối. Thử từ mạng khác hoặc nhờ IT mở port tương ứng.",
+      "label": "Loại trừ firewall / proxy của máy local"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy trả HTTP 503 với thông điệp đại ý: Cloud Connector cannot establish secure tunnel to back end.",
+  "title": "HTTP 503 — Cloud Connector không dựng được tunnel tới backend",
+  "updatedAt": "2026-09-17T10:03:00.000Z",
+  "verified": false
+}

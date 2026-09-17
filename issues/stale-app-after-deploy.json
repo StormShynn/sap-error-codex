@@ -1,0 +1,34 @@
+{
+  "createdAt": "2026-09-17T08:35:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "cachebuster",
+    "Already up-to-date"
+  ],
+  "prevention": "Trước khi báo cho khách hàng rằng bản mới đã lên, tự kiểm tra ở cửa sổ ẩn danh. Trong log deploy, nhìn phần Operations để xác nhận file thực sự đã được ghi.",
+  "refs": [
+    "ui5.yaml → generateCachebusterInfo"
+  ],
+  "rootCause": "Chưa xác minh đầy đủ. Hai tầng có thể gây ra:\n- Build dùng thư mục dist cũ nên archive không chứa thay đổi (log sẽ báo Already up-to-date)\n- Cachebuster / cache trình duyệt giữ bản cũ ở phía client",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Đọc phần * Operations * trong log deploy (cần log: 5 hoặc --verbose):\n\n- Nếu mọi file \"Already up-to-date\" → vấn đề ở build, không phải cache trình duyệt.\n- Nếu có file UPDATE/ADD → upload đã đúng, vấn đề ở phía client.",
+      "label": "Xác định tầng gây lỗi bằng log deploy",
+      "recommended": true
+    },
+    {
+      "body": "npm run build -- --clean-dest\n\nhoặc xoá thủ công thư mục dist rồi build lại.",
+      "label": "Build sạch"
+    },
+    {
+      "body": "Mở app ở cửa sổ ẩn danh, hoặc hard reload (Ctrl+Shift+R). Nếu bản mới hiện ra thì đúng là cache client.\n\nKiểm tra task generateCachebusterInfo có chạy trong ui5.yaml không — deploy-to-abap thường được đặt afterTask: generateCachebusterInfo chính vì lý do này.",
+      "label": "Kiểm tra phía trình duyệt"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy báo thành công nhưng mở app vẫn thấy giao diện/logic cũ. Hoặc log deploy báo tất cả file \"Already up-to-date\" dù vừa sửa code.",
+  "title": "Deploy xong nhưng trình duyệt vẫn load bản cũ của app",
+  "updatedAt": "2026-09-17T09:13:00.000Z",
+  "verified": false
+}

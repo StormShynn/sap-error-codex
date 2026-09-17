@@ -1,0 +1,33 @@
+{
+  "createdAt": "2026-09-16T14:00:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "command not found"
+  ],
+  "prevention": "Mọi lệnh dùng binary của project nên đi qua npm script hoặc npx. Không cài @sap/ux-ui5-tooling global — dễ lệch version giữa các máy trong team.",
+  "refs": [
+    "package.json scripts"
+  ],
+  "rootCause": "fiori là binary local do @sap/ux-ui5-tooling cài vào node_modules/.bin, không nằm trên PATH hệ thống. Chỉ npm script mới tự thêm node_modules/.bin vào PATH khi chạy.",
+  "severity": "Thấp",
+  "solutions": [
+    {
+      "body": "npm run build && npx fiori deploy --config ui5-deploy.yaml --verbose",
+      "label": "Dùng npx",
+      "recommended": true
+    },
+    {
+      "body": "npm run build && ./node_modules/.bin/fiori deploy --config ui5-deploy.yaml --verbose",
+      "label": "Gọi thẳng đường dẫn binary"
+    },
+    {
+      "body": "\"deploy-verbose\": \"npm run build && fiori deploy --config ui5-deploy.yaml --verbose\"\n\nSau đó chỉ cần: npm run deploy-verbose",
+      "label": "Thêm script vào package.json"
+    }
+  ],
+  "status": "Đã giải quyết",
+  "symptom": "Chạy trực tiếp trong terminal:\n\n  npm run build && fiori deploy --config ui5-deploy.yaml --verbose\n\nBuild chạy xong bình thường, rồi dừng ở:\n\n  bash: fiori: command not found",
+  "title": "bash: fiori: command not found khi chạy lệnh deploy trực tiếp",
+  "updatedAt": "2026-09-17T09:06:00.000Z",
+  "verified": true
+}

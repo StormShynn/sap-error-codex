@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-09-17T10:01:00.000Z",
+  "module": "Basis / Auth",
+  "msgKeys": [
+    "HTTP 502",
+    "Bad Gateway",
+    "ABAP_REPOSITORY_SRV"
+  ],
+  "prevention": "Chuẩn hoá cách khai destination trong tài liệu dự án: URL = hostname, không bao giờ kèm path.",
+  "refs": [
+    "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
+  ],
+  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: trường URL của destination bị khai kèm service path, khiến đường dẫn cuối cùng bị lặp đoạn và trỏ sai.",
+  "severity": "Cao",
+  "solutions": [
+    {
+      "body": "URL của destination phải là:\n  https://<hostname>\n\nKhông kèm /sap/opu/odata/... hay bất kỳ path nào.",
+      "label": "Đặt destination URL chỉ gồm hostname",
+      "recommended": true
+    },
+    {
+      "body": "DEBUG=* npm run deploy\n\nĐường dẫn đúng phải là:\n  /sap/opu/odata/UI5/ABAP_REPOSITORY_SRV\n\nNếu thấy đoạn này xuất hiện hai lần hoặc bị nối sau một path khác → đúng là lỗi destination URL.",
+      "label": "Kiểm tra đường dẫn thực tế bằng DEBUG"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy trả về HTTP 502 Bad Gateway. Kết nối tới được hệ thống nhưng phản hồi không hợp lệ.",
+  "title": "HTTP 502 Bad Gateway — destination URL bị khai kèm service path",
+  "updatedAt": "2026-09-17T10:01:00.000Z",
+  "verified": false
+}

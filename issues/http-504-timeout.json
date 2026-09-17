@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-09-17T10:02:00.000Z",
+  "module": "Basis / Auth",
+  "msgKeys": [
+    "HTTP 504",
+    "Gateway Timeout",
+    "HTML5.Timeout"
+  ],
+  "prevention": "Đặt HTML5.Timeout = 60000 ngay khi tạo destination mới, không chờ đến khi gặp lỗi.",
+  "refs": [
+    "https://github.com/SAP-samples/fiori-tools-samples/blob/main/misc/onpremise/deployment.md"
+  ],
+  "rootCause": "Chưa xác minh trên hệ thống của FPT IS. Theo tài liệu SAP-samples: thời gian phản hồi của backend vượt quá timeout cấu hình trên destination.",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Thêm hoặc sửa property của destination trong BTP cockpit:\n\n  HTML5.Timeout = 60000\n\nĐơn vị mili giây. 60000 là giá trị tối thiểu được khuyến nghị; app lớn có thể cần cao hơn.",
+      "label": "Tăng HTML5.Timeout trên destination",
+      "recommended": true
+    },
+    {
+      "body": "Kiểm tra khối exclude trong ui5-deploy.yaml — loại /test/, /localService/, mock data và các file không cần thiết. Log deploy in ra số file trong archive, dùng con số đó để đối chiếu.",
+      "label": "Giảm kích thước archive"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Deploy chạy một lúc rồi dừng với HTTP 504. Thường gặp với app có nhiều file hoặc hệ thống đang tải cao.",
+  "title": "HTTP 504 Gateway Timeout khi deploy app lớn",
+  "updatedAt": "2026-09-17T10:02:00.000Z",
+  "verified": false
+}

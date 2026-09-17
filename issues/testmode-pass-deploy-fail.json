@@ -1,0 +1,30 @@
+{
+  "createdAt": "2026-09-16T11:00:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "HTTP 400",
+    "testMode"
+  ],
+  "prevention": "Khi deploy một app lần đầu hoặc sau khi đổi manifest, chạy deploy thật trên môi trường DEV trước, đừng dựa vào test mode để quyết định lên QA.",
+  "refs": [
+    "open-ux-tools/packages/deploy-tooling README"
+  ],
+  "rootCause": "Test mode chỉ chạy phần validate cấu hình và mô phỏng upload file. Nó KHÔNG chạy bước \"Updating the Application Index\" và không ghi LADI — đúng chỗ phần lớn lỗi deploy thật phát sinh.\n\nChính log của deploy tooling đã nói: \"A successful TestMode execution does not necessarily mean that your upload will be successful.\"",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Test mode kiểm được: cú pháp yaml, package tồn tại, transport tồn tại, kết nối/auth, cấu trúc archive.\n\nTest mode KHÔNG kiểm được: ghi transport, Application Index, LADI, đăng ký repository, xung đột package của object phụ.\n\nDùng test mode như một bước lọc nhanh trước khi deploy thật, không coi nó là bảo chứng.",
+      "label": "Hiểu đúng phạm vi test mode",
+      "recommended": true
+    },
+    {
+      "body": "Bỏ qua phần header và Parameters. Tìm dòng bắt đầu bằng \"* Updating the Application Index *\" — lỗi thật luôn nằm ngay sau đó.\n\nCác dòng \"info ... message_text ...\" chỉ là link tra nội dung message, không phải lỗi.",
+      "label": "Đọc log ở đúng giai đoạn khi deploy thật fail"
+    }
+  ],
+  "status": "Đã giải quyết",
+  "symptom": "npm run deploy-test cho kết quả:\n\n  √ SAPUI5 ABAP Repository follows the rules of creating BSP application\n  √ Package is found on ABAP system\n  √ Transport Request is found on ABAP system\n  Test run has indicated no problems\n\nNhưng npm run deploy ngay sau đó vẫn fail với status 400.",
+  "title": "deploy --testMode báo \"no problems\" nhưng deploy thật vẫn fail 400",
+  "updatedAt": "2026-09-17T09:05:00.000Z",
+  "verified": true
+}

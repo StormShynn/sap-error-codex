@@ -1,0 +1,41 @@
+name: Sửa hoặc xác minh mục đã có
+description: Bổ sung, đính chính, hoặc xác nhận một cách xử lý đã chạy được
+title: "[Sửa] "
+labels: ["sua-doi"]
+body:
+  - type: input
+    id: issue_id
+    attributes:
+      label: ID của mục
+      description: Tên file trong issues/, không có đuôi .json
+      placeholder: ladi-package-conflict
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Loại đóng góp
+      options:
+        - Xác minh — tôi đã chạy và nó hoạt động
+        - Phản chứng — tôi đã chạy và nó KHÔNG hoạt động
+        - Bổ sung cách xử lý mới
+        - Đính chính nội dung sai
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Chi tiết
+      description: |
+        Với xác minh: ngày, môi trường (DEV/QA/PRD), phiên bản hệ thống.
+        Với phản chứng: điều kiện nào làm nó thất bại, log kèm theo.
+      render: text
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Nhắc lại: không dán hostname, tenant ID, tên người dùng hay transport number thật.

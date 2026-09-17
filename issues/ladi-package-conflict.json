@@ -1,0 +1,51 @@
+{
+  "createdAt": "2026-09-16T10:00:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "/UI2/UI5_REP_LOAD-039",
+    "/UI2/UI5_REP_LOAD-031",
+    "/UI2/UI5_REP_LOAD-035",
+    "/UI5/UI5_REP_LOAD-003",
+    "HTTP 400",
+    "CA-UI5-ABA-SAR"
+  ],
+  "prevention": "Trước khi undeploy một app có crossNavigation, kiểm tra LADI của nó nằm ở package và transport nào — và release transport chứa lệnh xoá trước khi deploy lại.\n\nThống nhất trong team: mỗi app chỉ một người deploy, dùng transport của chính mình. Nhiều người deploy cùng một app bằng các transport khác nhau là nguồn gốc của loại xung đột này.\n\nĐặt app.name và package theo quy ước cố định ngay từ lần deploy đầu — cả hai đều không đổi được sau đó.",
+  "refs": [
+    "SAP Note 1797736",
+    "SAP support component: CA-FLP-ABA-DT",
+    "https://community.sap.com/t5/enterprise-resource-planning-q-a/s-4-hana-cloud-bas-issue-when-fiori-app-is-deployed-a-second-time/qaq-p/12813366",
+    "ADT Feed Reader → SAP Gateway Error Log",
+    "SLG1 client 000, object /UI5/APPIDX (chỉ admin backend)",
+    "Object type: Launchpad App Descriptor Item (LADI)"
+  ],
+  "rootCause": "Xung đột không nằm ở BSP application mà ở đối tượng LADI (Launchpad App Descriptor Item) sinh ra từ khối crossNavigation trong manifest.json.\n\nTên LADI lấy từ tên BSP repository, không phải từ semanticObject: repository ZQM04 → LADI ZQM04_UI5R. Khi LADI cùng tên đã tồn tại (hoặc từng tồn tại rồi bị undeploy) ở một package khác, bước Application Index từ chối ghi sang package mới.\n\nNếu việc xoá LADI trước đó nằm trong một transport chưa release, record package cũ vẫn còn trong object directory nên hệ thống vẫn đọc ra package cũ.",
+  "severity": "Blocker",
+  "solutions": [
+    {
+      "body": "Đã xác minh: deploy thành công ngay sau khi bỏ khối này.\n\nTạm comment/xoá crossNavigation trong webapp/manifest.json rồi npm run deploy. Không có inbound thì không sinh LADI, bước Application Index không còn gì để xung đột.\n\nApp chạy được qua URL trực tiếp:\n  https://<host>/sap/bc/ui5_ui5/sap/<appname>/index.html\n\nĐánh đổi: chưa có tile trên Fiori Launchpad. Dùng khi cần unblock trong ngày.",
+      "label": "Gỡ crossNavigation khỏi manifest.json để deploy ngay",
+      "recommended": true
+    },
+    {
+      "body": "Chưa xác minh trên hệ thống này.\n\n1. ADT (Eclipse) → Ctrl+Shift+A → gõ <APPNAME>_UI5R\n2. Ghi lại Package và Transport của object\n3. Delete → gán vào transport của bạn → Activate\n4. Khôi phục crossNavigation trong manifest.json\n5. npm run deploy\n\nCần quyền xoá object (Developer Extensibility role). Nếu LADI nằm trong transport của người khác và TR đó chưa release, bạn sẽ không xoá được — phải nhờ chủ TR release hoặc tự xoá.\n\nLưu ý: có báo cáo trên SAP Community rằng thao tác xoá LADI thủ công trong Eclipse bị chặn trên S/4HANA Public Cloud (thông báo đại ý \"SAP GUI is not supported in project\"). Nếu gặp, chuyển sang cách C5.",
+      "label": "Xoá LADI cũ trong ADT rồi khôi phục crossNavigation"
+    },
+    {
+      "body": "Chưa xác minh.\n\nÁp dụng khi LADI đã bị undeploy nhưng lệnh xoá còn nằm trong TR chưa release. Tìm TR đó trong Transport Organizer, release qua app \"Export Software Collection\", rồi deploy lại.\n\nCảnh báo: release sẽ đẩy toàn bộ object trong TR sang hệ thống tiếp theo. Kiểm tra nội dung TR trước, đặc biệt khi TR thuộc người khác.",
+      "label": "Release transport chứa lệnh xoá LADI"
+    },
+    {
+      "body": "Chưa xác minh.\n\nĐổi app.name trong ui5-deploy.yaml (VD ZQM04 → ZQM04A) → LADI mới ZQM04A_UI5R, không đụng object cũ. Giữ nguyên crossNavigation.\n\nĐánh đổi: URL đổi, phải gán lại Business Catalog / Business Role, và app cũ để lại làm rác trong hệ thống. Chỉ dùng khi không có quyền ADT và không liên hệ được chủ transport.",
+      "label": "Đổi tên BSP app để sinh LADI mới"
+    },
+    {
+      "body": "Chưa xác minh kết quả.\n\nĐây là vấn đề đã được báo cáo trên SAP Community: redeploy lần thứ hai một Fiori app lên S/4HANA Cloud gặp lỗi liên quan LADI, và việc xoá thủ công bị chặn. Thread đó không có lời giải — khuyến nghị duy nhất là mở incident với SAP.\n\nComponent: CA-FLP-ABA-DT\n\nKèm theo khi mở ticket:\n- toàn bộ log deploy (bật log: 5)\n- tên repository, package, transport\n- Transaction ID từ Gateway Error Log\n- các cách đã thử và kết quả\n\nDùng khi C2 và C3 đều không thực hiện được và bạn muốn giữ nguyên tên app.",
+      "label": "Mở SAP incident — component CA-FLP-ABA-DT"
+    }
+  ],
+  "status": "Đang điều tra",
+  "symptom": "npm run deploy thất bại với HTTP 400. Trong log, phần upload BSP chạy bình thường, lỗi rơi đúng ở bước Application Index:\n\n  Updating existing SAPUI5 ABAP repository ZQM04\n  * Updating the Application Index *\n  error Error updating LADIs for UI5 repository ZQM04, package ZQM04, transport HL8Kxxxxxx\n  info  Inbound ZQM04-display was converted to LADI ZQM04_UI5R\n  error SAPUI5 application can only be deployed to the previous package ZQM\n\nĐặc điểm nhận dạng: đổi package trong ui5-deploy.yaml không làm thay đổi thông báo, đổi transport cũng không.",
+  "title": "Deploy Fiori báo \"can only be deployed to the previous package\" dù package trong yaml đã đúng",
+  "updatedAt": "2026-09-17T10:20:00.000Z",
+  "verified": true
+}

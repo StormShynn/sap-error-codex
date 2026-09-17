@@ -1,0 +1,29 @@
+{
+  "createdAt": "2026-09-17T08:10:00.000Z",
+  "module": "ABAP / Extensibility",
+  "msgKeys": [
+    "Package is found on ABAP system (fail)"
+  ],
+  "prevention": "Thống nhất cây package cho từng module nghiệp vụ ngay đầu dự án (ZQM, ZMM, ZSD…) và ghi vào tài liệu kỹ thuật. Tránh tạo package theo từng app — sinh ra rất nhiều package rỗng và làm phức tạp việc gom transport.",
+  "refs": [
+    "ADT → New → ABAP Package"
+  ],
+  "rootCause": "Chưa xác minh. Khả năng: package chưa được tạo trong ADT, sai chính tả, hoặc package thuộc software component mà user không có quyền.",
+  "severity": "Cao",
+  "solutions": [
+    {
+      "body": "ADT → chọn package cha (VD ZQM) → New → ABAP Package → đặt tên, gán Software Component và Transport Layer theo chuẩn của dự án.\n\nTrên S/4HANA Public Cloud, package phải nằm trong structure package cho phép Developer Extensibility.",
+      "label": "Tạo package trong ADT trước khi deploy",
+      "recommended": true
+    },
+    {
+      "body": "Nếu không cần package riêng cho từng app, khai package cha (VD ZQM) trong ui5-deploy.yaml. Lưu ý: package của một BSP app không đổi được sau lần deploy đầu tiên.",
+      "label": "Dùng package cha có sẵn"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "Bước validate của deploy báo không tìm thấy package khai trong app.package của ui5-deploy.yaml.",
+  "title": "Package is not found on ABAP system khi deploy app mới",
+  "updatedAt": "2026-09-17T09:09:00.000Z",
+  "verified": false
+}

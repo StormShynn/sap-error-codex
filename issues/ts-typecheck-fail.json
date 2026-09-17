@@ -1,0 +1,35 @@
+{
+  "createdAt": "2026-09-17T08:50:00.000Z",
+  "module": "SAP Fiori / UI5",
+  "msgKeys": [
+    "tsc --noEmit",
+    "prebuild"
+  ],
+  "prevention": "Commit package-lock.json vào git và dùng npm ci trên máy build/CI. Ghim version cho @sapui5/types và @ui5/cli thay vì dùng dải ^ hoặc ~ — các package này thay định nghĩa type giữa các bản patch.",
+  "refs": [
+    "package.json → devDependencies",
+    "tsconfig.json"
+  ],
+  "rootCause": "Chưa xác minh. Khả năng: @sapui5/types dùng dải version (~1.142.0) nên npm install kéo bản patch mới có định nghĩa type khác, hoặc version types lệch với minUI5Version của app.",
+  "severity": "Trung bình",
+  "solutions": [
+    {
+      "body": "Log deploy in ra minUI5Version (VD 1.142.12). So với @sapui5/types trong package.json.\n\nGhim version cụ thể để tránh trôi:\n  \"@sapui5/types\": \"1.142.0\"\n\nRồi: rm -rf node_modules package-lock.json && npm install",
+      "label": "Đối chiếu version types với minUI5Version",
+      "recommended": true
+    },
+    {
+      "body": "Nếu package-lock.json còn trong git và trước đó build được: git checkout package-lock.json && npm ci\n\nnpm ci cài đúng version trong lock, không tự nâng.",
+      "label": "Khôi phục từ package-lock.json"
+    },
+    {
+      "body": "npm run ts-typecheck\n\nChạy riêng để đọc danh sách lỗi đầy đủ thay vì bị cắt trong log deploy.",
+      "label": "Xem lỗi type cụ thể"
+    }
+  ],
+  "status": "Mở",
+  "symptom": "npm run deploy dừng ngay ở bước prebuild với lỗi TypeScript, trong khi code không đổi gì — chỉ vừa npm install hoặc cập nhật dependency.",
+  "title": "prebuild fail: tsc --noEmit báo lỗi type sau khi cập nhật @sapui5/types",
+  "updatedAt": "2026-09-17T09:16:00.000Z",
+  "verified": false
+}

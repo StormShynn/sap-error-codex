@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SAP Error Codex</title>
+<meta name="description" content="Kho tra cuu loi trien khai SAP Fiori, ABAP va data platform - tim theo message ID.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground:        #F4F6F8;
+    --surface:       #FFFFFF;
+    --surface-sunk:  #EDF0F3;
+    --ink:           #131A20;
+    --ink-soft:      #47555F;
+    --ink-faint:     #7A8892;
+    --line:          #DDE3E8;
+    --line-strong:   #C3CDD4;
+    --accent:        #0E6B62;
+    --accent-soft:   #E2F1EF;
+    --accent-ink:    #0A4E47;
+    --crit:          #B02430;
+    --crit-soft:     #FBE9EA;
+    --warn:          #A66206;
+    --warn-soft:     #FBF0DF;
+    --ok:            #2A7A4E;
+    --ok-soft:       #E4F3EA;
+    --info:          #3A5E8C;
+    --info-soft:     #E8EEF6;
+    --shadow:        0 1px 2px rgba(19,26,32,.06), 0 6px 18px rgba(19,26,32,.06);
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:       #0F1417;
+      --surface:      #171E23;
+      --surface-sunk: #10161A;
+      --ink:          #E8EDF0;
+      --ink-soft:     #A9B6BF;
+      --ink-faint:    #74838D;
+      --line:         #2A343B;
+      --line-strong:  #3C4952;
+      --accent:       #4BC4B4;
+      --accent-soft:  #10312E;
+      --accent-ink:   #7FDACD;
+      --crit:         #F08B92;
+      --crit-soft:    #3A1A1D;
+      --warn:         #E0AC5E;
+      --warn-soft:    #3A2C14;
+      --ok:           #6FCB93;
+      --ok-soft:      #142E20;
+      --info:         #8FB2DE;
+      --info-soft:    #172434;
+      --shadow:       0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:       #0F1417;
+    --surface:      #171E23;
+    --surface-sunk: #10161A;
+    --ink:          #E8EDF0;
+    --ink-soft:     #A9B6BF;
+    --ink-faint:    #74838D;
+    --line:         #2A343B;
+    --line-strong:  #3C4952;
+    --accent:       #4BC4B4;
+    --accent-soft:  #10312E;
+    --accent-ink:   #7FDACD;
+    --crit:         #F08B92;
+    --crit-soft:    #3A1A1D;
+    --warn:         #E0AC5E;
+    --warn-soft:    #3A2C14;
+    --ok:           #6FCB93;
+    --ok-soft:      #142E20;
+    --info:         #8FB2DE;
+    --info-soft:    #172434;
+    --shadow:       0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 14px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  /* ---------- shell ---------- */
+  .app { display: flex; flex-direction: column; height: 100%; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .brand h1 {
+    margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap;
+  }
+  .brand .org {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--ink-faint); white-space: nowrap;
+  }
+  .search { flex: 1 1 260px; position: relative; min-width: 200px; }
+  .search input {
+    width: 100%; padding: 8px 12px 8px 32px; border: 1px solid var(--line-strong);
+    border-radius: 6px; background: var(--surface-sunk); font-family: var(--mono); font-size: 12.5px;
+  }
+  .search input::placeholder { color: var(--ink-faint); }
+  .search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: .5; }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    padding: 7px 13px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+  .btn-primary:hover { filter: brightness(1.08); border-color: var(--accent); color: var(--surface); }
+  .btn-quiet { border-color: transparent; background: transparent; color: var(--ink-soft); padding: 6px 8px; }
+  .btn-quiet:hover { background: var(--surface-sunk); color: var(--ink); }
+  .btn-danger:hover { border-color: var(--crit); color: var(--crit); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+  .live {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px;
+    color: var(--ink-faint); font-family: var(--mono); white-space: nowrap;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .dot.off { background: var(--ink-faint); }
+
+  /* ---------- filters ---------- */
+  .filters {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    padding: 9px 20px; background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .fgroup { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  .fgroup + .fgroup { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--line); }
+  .flabel {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-faint); margin-right: 2px;
+  }
+  .chip {
+    border: 1px solid var(--line); background: transparent; color: var(--ink-soft);
+    padding: 3px 9px; border-radius: 99px; cursor: pointer; font-size: 12px;
+  }
+  .chip:hover { border-color: var(--line-strong); color: var(--ink); }
+  .chip[aria-pressed="true"] {
+    background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); font-weight: 500;
+  }
+
+  /* ---------- panes ---------- */
+  .panes { flex: 1; display: grid; grid-template-columns: minmax(300px, 400px) 1fr; min-height: 0; }
+  .list { border-right: 1px solid var(--line); overflow-y: auto; background: var(--ground); }
+  .detail { overflow-y: auto; background: var(--ground); }
+
+  .row {
+    display: grid; grid-template-columns: 4px 1fr; gap: 0;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+    cursor: pointer; text-align: left; width: 100%; border-left: 0; border-right: 0; border-top: 0;
+    padding: 0; font: inherit; color: inherit;
+  }
+  .row:hover { background: var(--surface-sunk); }
+  .row[aria-current="true"] { background: var(--accent-soft); }
+  .row-stripe { background: var(--ink-faint); }
+  .row-stripe.sev-blocker { background: var(--crit); }
+  .row-stripe.sev-cao     { background: var(--warn); }
+  .row-stripe.sev-trungbinh { background: var(--info); }
+  .row-stripe.sev-thap    { background: var(--line-strong); }
+  .row-body { padding: 11px 14px; min-width: 0; }
+  .row-title { font-weight: 600; font-size: 13.5px; line-height: 1.4; margin: 0 0 5px; text-wrap: balance; }
+  .row-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--ink-faint); }
+  .row-keys { font-family: var(--mono); font-size: 11px; color: var(--accent-ink); margin-top: 5px;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .tag {
+    font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px; font-weight: 500;
+    background: var(--surface-sunk); color: var(--ink-soft); white-space: nowrap;
+  }
+  .tag.st-mo        { background: var(--crit-soft); color: var(--crit); }
+  .tag.st-dangdieutra{ background: var(--warn-soft); color: var(--warn); }
+  .tag.st-dagiaiquyet{ background: var(--ok-soft);  color: var(--ok); }
+  .tag.verified     { background: var(--ok-soft); color: var(--ok); }
+  .tag.unverified   { background: var(--warn-soft); color: var(--warn); }
+
+  .empty { padding: 48px 24px; text-align: center; color: var(--ink-faint); }
+
+  /* ---------- detail content ---------- */
+  .doc { max-width: 760px; padding: 26px 28px 80px; }
+  .doc-head { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px; }
+  .doc-eyebrow {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 7px;
+  }
+  .doc h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.25; letter-spacing: -.02em; text-wrap: balance; }
+  .doc-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .doc-keys { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .msgkey {
+    font-family: var(--mono); font-size: 11.5px; padding: 3px 8px; border-radius: 4px;
+    background: var(--surface-sunk); border: 1px solid var(--line); color: var(--ink);
+  }
+
+  .sec { margin-bottom: 24px; }
+  .sec > h3 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 8px; font-weight: 600;
+  }
+  .prose { white-space: pre-wrap; margin: 0; color: var(--ink); }
+  .prose.muted { color: var(--ink-soft); }
+
+  .fix { background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+         padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .fix.rec { border-color: var(--accent); }
+  .fix-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 7px; flex-wrap: wrap; }
+  .fix-num {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; flex: none;
+  }
+  .fix.rec .fix-num { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+  .fix-label { font-weight: 600; font-size: 14px; }
+  .fix-rec {
+    font-size: 10.5px; padding: 1.5px 7px; border-radius: 4px; font-weight: 600;
+    background: var(--accent-soft); color: var(--accent-ink);
+  }
+
+  .refs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .refs li { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+
+  .doc-foot {
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line);
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    font-size: 12px; color: var(--ink-faint);
+  }
+  .doc-foot .spacer { flex: 1; }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; }
+
+  /* ---------- editor ---------- */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(10,14,17,.55); z-index: 50;
+    display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 24px 16px;
+  }
+  .sheet {
+    background: var(--surface); border-radius: 10px; width: 100%; max-width: 680px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35); overflow: hidden;
+  }
+  .sheet-head {
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sheet-head h3 { margin: 0; font-size: 15px; }
+  .sheet-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .sheet-foot {
+    padding: 13px 20px; border-top: 1px solid var(--line); background: var(--surface-sunk);
+    display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field > label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  .field input[type=text], .field textarea, .field select {
+    border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 10px;
+    background: var(--surface-sunk); width: 100%;
+  }
+  .field textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+  .field .hint { font-size: 11.5px; color: var(--ink-faint); }
+  .field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .field-row > .field { flex: 1 1 150px; }
+  .mono-in { font-family: var(--mono); font-size: 12.5px; }
+  .check { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+
+  .sol-edit { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex;
+              flex-direction: column; gap: 9px; background: var(--surface-sunk); }
+  .sol-edit-head { display: flex; gap: 8px; align-items: center; }
+  .sol-edit-head input { flex: 1; }
+
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 90;
+    background: var(--ink); color: var(--ground); padding: 9px 16px; border-radius: 7px;
+    font-size: 13px; box-shadow: var(--shadow);
+  }
+
+  .banner {
+    padding: 9px 20px; background: var(--warn-soft); color: var(--warn);
+    font-size: 12.5px; border-bottom: 1px solid var(--line);
+  }
+
+  .back-btn { display: none; }
+
+  @media (max-width: 820px) {
+    .panes { grid-template-columns: 1fr; }
+    .list { border-right: 0; }
+    .app[data-view="detail"] .list { display: none; }
+    .app[data-view="list"] .detail { display: none; }
+    .back-btn { display: inline-flex; }
+    .doc { padding: 20px 16px 72px; }
+    .topbar, .filters { padding-left: 16px; padding-right: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style><style>
+  html,body{height:100%}
+  body{margin:0;-webkit-font-smoothing:antialiased}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+  .repo-link{font-size:12.5px;color:var(--ink-soft);text-decoration:none;white-space:nowrap}
+  .repo-link:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="app" id="app" data-view="list">
+  <header class="topbar">
+    <div class="brand">
+      <h1>SAP Error Codex</h1>
+      <span class="org">Sổ tay lỗi triển khai</span>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path>
+      </svg>
+      <input id="q" type="text" placeholder="Tìm: LADI, /UI2/UI5_REP_LOAD, 403, transport…" autocomplete="off" aria-label="Tìm kiếm lỗi">
+    </div>
+    <div class="topbar-actions">
+      <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">đang tải</span></span>
+      <a class="repo-link" id="repoLink" href="#" target="_blank" rel="noopener">Đóng góp trên GitHub →</a>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="filters">
+    <div class="fgroup"><span class="flabel">Mảng</span><span id="fModule"></span></div>
+    <div class="fgroup"><span class="flabel">Mức độ</span><span id="fSeverity"></span></div>
+    <div class="fgroup"><span class="flabel">Trạng thái</span><span id="fStatus"></span></div>
+    <div class="fgroup"><button class="chip" id="fVerified" aria-pressed="false">Chỉ mục đã xác minh</button></div>
+  </div>
+
+  <div class="panes">
+    <nav class="list" id="list" aria-label="Danh sách lỗi"></nav>
+    <main class="detail" id="detail"></main>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var REPO = "https://github.com/StormShynn/sap-error-codex";
+  var MODULES  = ["SAP Fiori / UI5", "ABAP / Extensibility", "Transport & Release", "Integration / OData", "Power BI", "Microsoft Fabric", "Basis / Auth"];
+  var SEVS     = ["Blocker", "Cao", "Trung bình", "Thấp"];
+  var STATUSES = ["Mở", "Đang điều tra", "Đã giải quyết"];
+
+  var state = { issues: [], q: "", module: null, severity: null, status: null, verifiedOnly: false, selected: null };
+  var $ = function (id) { return document.getElementById(id); };
+  var app = $("app");
+  $("repoLink").href = REPO + "/issues/new/choose";
+
+  function slug(s) {
+    return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d").replace(/[^a-z0-9]/g, "");
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function when(ts) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleDateString("vi-VN");
+  }
+  function banner(msg) {
+    var b = $("banner");
+    if (!msg) { b.hidden = true; return; }
+    b.textContent = msg; b.hidden = false;
+  }
+
+  function buildChips(host, values, key) {
+    var mount = $(host); mount.textContent = "";
+    var all = el("button", "chip", "Tất cả");
+    all.setAttribute("aria-pressed", "true");
+    all.onclick = function () { state[key] = null; render(); };
+    mount.appendChild(all);
+    values.forEach(function (v) {
+      var c = el("button", "chip", v);
+      c.setAttribute("aria-pressed", "false");
+      c.dataset.val = v;
+      c.onclick = function () { state[key] = (state[key] === v ? null : v); render(); };
+      mount.appendChild(c);
+    });
+  }
+  function syncChips(host, key) {
+    Array.prototype.forEach.call($(host).children, function (c) {
+      var on = c.dataset.val ? state[key] === c.dataset.val : state[key] === null;
+      c.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function haystack(it) {
+    var parts = [it.title, it.symptom, it.rootCause, it.prevention, it.module,
+                 (it.msgKeys || []).join(" "), (it.refs || []).join(" ")];
+    (it.solutions || []).forEach(function (s) { parts.push(s.label, s.body); });
+    return slug(parts.join(" "));
+  }
+  function matches(it) {
+    if (state.module && it.module !== state.module) return false;
+    if (state.severity && it.severity !== state.severity) return false;
+    if (state.status && it.status !== state.status) return false;
+    if (state.verifiedOnly && !it.verified) return false;
+    if (!state.q) return true;
+    var terms = state.q.split(/\s+/).filter(Boolean).map(slug).filter(Boolean);
+    var hay = haystack(it);
+    return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+  }
+
+  function render() {
+    syncChips("fModule", "module"); syncChips("fSeverity", "severity"); syncChips("fStatus", "status");
+    $("fVerified").setAttribute("aria-pressed", state.verifiedOnly ? "true" : "false");
+
+    var rows = state.issues.filter(matches).sort(function (a, b) {
+      var w = { "Blocker": 0, "Cao": 1, "Trung bình": 2, "Thấp": 3 };
+      var d = (w[a.severity] == null ? 9 : w[a.severity]) - (w[b.severity] == null ? 9 : w[b.severity]);
+      return d !== 0 ? d : String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
+    });
+
+    var list = $("list"); list.textContent = "";
+    if (!rows.length) {
+      var e = el("div", "empty");
+      e.appendChild(el("p", null, state.issues.length ? "Không có mục nào khớp bộ lọc." : "Đang tải dữ liệu…"));
+      list.appendChild(e);
+    }
+    rows.forEach(function (it) {
+      var row = el("button", "row"); row.type = "button";
+      if (state.selected === it.id) row.setAttribute("aria-current", "true");
+      row.appendChild(el("span", "row-stripe sev-" + slug(it.severity || "")));
+      var body = el("div", "row-body");
+      body.appendChild(el("p", "row-title", it.title || "(chưa đặt tên)"));
+      var meta = el("div", "row-meta");
+      meta.appendChild(el("span", "tag", it.module || "—"));
+      meta.appendChild(el("span", "tag st-" + slug(it.status || ""), it.status || "—"));
+      body.appendChild(meta);
+      if (it.msgKeys && it.msgKeys.length) body.appendChild(el("div", "row-keys", it.msgKeys.join("  ·  ")));
+      row.appendChild(body);
+      row.onclick = function () {
+        state.selected = it.id; app.dataset.view = "detail";
+        if (history.replaceState) history.replaceState(null, "", "#" + it.id);
+        render();
+      };
+      list.appendChild(row);
+    });
+    renderDetail(state.issues.filter(function (i) { return i.id === state.selected; })[0]);
+  }
+
+  function section(title, node) {
+    var s = el("section", "sec");
+    s.appendChild(el("h3", null, title));
+    s.appendChild(node);
+    return s;
+  }
+
+  function renderDetail(it) {
+    var d = $("detail"); d.textContent = "";
+    if (!it) {
+      var e = el("div", "empty");
+      e.appendChild(el("p", null, "Chọn một mục ở danh sách bên trái để xem chi tiết."));
+      d.appendChild(e);
+      return;
+    }
+    var doc = el("article", "doc");
+    var head = el("header", "doc-head");
+    var back = el("button", "btn btn-quiet back-btn", "← Danh sách");
+    back.onclick = function () { app.dataset.view = "list"; };
+    head.appendChild(back);
+    head.appendChild(el("div", "doc-eyebrow", (it.module || "—") + " · " + it.id));
+    head.appendChild(el("h2", null, it.title || "(chưa đặt tên)"));
+    var badges = el("div", "doc-badges");
+    badges.appendChild(el("span", "tag st-" + slug(it.status || ""), it.status || "—"));
+    badges.appendChild(el("span", "tag", "Mức độ: " + (it.severity || "—")));
+    badges.appendChild(el("span", "tag " + (it.verified ? "verified" : "unverified"),
+      it.verified ? "Đã xác minh trên hệ thống thật" : "Chưa xác minh — kiểm tra trước khi áp dụng"));
+    head.appendChild(badges);
+    if (it.msgKeys && it.msgKeys.length) {
+      var keys = el("div", "doc-keys");
+      it.msgKeys.forEach(function (k) { keys.appendChild(el("code", "msgkey", k)); });
+      head.appendChild(keys);
+    }
+    doc.appendChild(head);
+
+    if (it.symptom)   doc.appendChild(section("Triệu chứng", el("p", "prose", it.symptom)));
+    if (it.rootCause) doc.appendChild(section("Nguyên nhân", el("p", "prose", it.rootCause)));
+
+    if (it.solutions && it.solutions.length) {
+      var wrap = el("div");
+      it.solutions.forEach(function (s, i) {
+        var f = el("div", "fix" + (s.recommended ? " rec" : ""));
+        var fh = el("div", "fix-head");
+        fh.appendChild(el("span", "fix-num", "C" + (i + 1)));
+        fh.appendChild(el("span", "fix-label", s.label || ""));
+        if (s.recommended) fh.appendChild(el("span", "fix-rec", "Khuyến nghị"));
+        f.appendChild(fh);
+        f.appendChild(el("p", "prose", s.body || ""));
+        wrap.appendChild(f);
+      });
+      doc.appendChild(section("Cách xử lý", wrap));
+    }
+    if (it.prevention) doc.appendChild(section("Phòng ngừa lần sau", el("p", "prose muted", it.prevention)));
+    if (it.refs && it.refs.length) {
+      var ul = el("ul", "refs");
+      it.refs.forEach(function (r) {
+        var li = el("li");
+        if (/^https?:\/\//.test(r)) {
+          var a = el("a", null, r); a.href = r; a.target = "_blank"; a.rel = "noopener";
+          li.appendChild(a);
+        } else { li.textContent = r; }
+        ul.appendChild(li);
+      });
+      doc.appendChild(section("Tham chiếu", ul));
+    }
+
+    var foot = el("div", "doc-foot");
+    foot.appendChild(el("span", null, "Cập nhật " + when(it.updatedAt)));
+    foot.appendChild(el("span", "spacer"));
+    var fix = el("a", "btn");
+    fix.textContent = "Đề xuất sửa mục này";
+    fix.href = REPO + "/issues/new?template=sua-muc.yml&title=" + encodeURIComponent("[Sửa] " + it.id);
+    fix.target = "_blank"; fix.rel = "noopener";
+    foot.appendChild(fix);
+    doc.appendChild(foot);
+    d.appendChild(doc);
+    d.scrollTop = 0;
+  }
+
+  buildChips("fModule", MODULES, "module");
+  buildChips("fSeverity", SEVS, "severity");
+  buildChips("fStatus", STATUSES, "status");
+  $("fVerified").onclick = function () { state.verifiedOnly = !state.verifiedOnly; render(); };
+  var qTimer = null;
+  $("q").oninput = function (e) {
+    var v = e.target.value;
+    clearTimeout(qTimer);
+    qTimer = setTimeout(function () { state.q = v.trim(); render(); }, 130);
+  };
+  render();
+
+  fetch("data/issues.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (rows) {
+      state.issues = rows;
+      $("liveText").textContent = rows.length + " mục";
+      var hash = location.hash.replace("#", "");
+      if (hash && rows.some(function (r) { return r.id === hash; })) {
+        state.selected = hash;
+        if (window.innerWidth <= 820) app.dataset.view = "detail";
+      } else if (window.innerWidth > 820 && rows.length) {
+        state.selected = rows[0].id;
+      }
+      render();
+    })
+    .catch(function (err) {
+      $("liveDot").className = "dot off";
+      $("liveText").textContent = "lỗi tải";
+      banner("Không đọc được data/issues.json (" + err.message + "). Nếu bạn mở file bằng file:// thì trình duyệt sẽ chặn — chạy một web server tĩnh, ví dụ: python3 -m http.server");
+    });
+})();
+</script>
+</body>
+</html>
