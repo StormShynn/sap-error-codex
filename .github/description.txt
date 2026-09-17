@@ -1,1 +1,1 @@
-Sổ tay tra cứu lỗi triển khai SAP Fiori, ABAP và integration — tìm theo message ID.
+A lookup handbook for SAP Fiori, ABAP, and integration deployment errors — searchable by message ID.

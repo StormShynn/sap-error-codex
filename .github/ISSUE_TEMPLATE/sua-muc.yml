@@ -1,13 +1,13 @@
-name: Sửa hoặc xác minh mục đã có
-description: Bổ sung, đính chính, hoặc xác nhận một cách xử lý đã chạy được
-title: "[Sửa] "
-labels: ["sua-doi"]
+name: Fix or verify an existing entry
+description: Add to, correct, or confirm a fix that has already been run
+title: "[Fix] "
+labels: ["amendment"]
 body:
   - type: input
     id: issue_id
     attributes:
-      label: ID của mục
-      description: Tên file trong issues/, không có đuôi .json
+      label: Entry ID
+      description: The filename in issues/, without the .json extension
       placeholder: ladi-package-conflict
     validations:
       required: true
@@ -15,22 +15,22 @@ body:
   - type: dropdown
     id: kind
     attributes:
-      label: Loại đóng góp
+      label: Contribution type
       options:
-        - Xác minh — tôi đã chạy và nó hoạt động
-        - Phản chứng — tôi đã chạy và nó KHÔNG hoạt động
-        - Bổ sung cách xử lý mới
-        - Đính chính nội dung sai
+        - Verification — I ran it and it worked
+        - Counter-evidence — I ran it and it did NOT work
+        - New fix
+        - Correction of wrong content
     validations:
       required: true
 
   - type: textarea
     id: detail
     attributes:
-      label: Chi tiết
+      label: Detail
       description: |
-        Với xác minh: ngày, môi trường (DEV/QA/PRD), phiên bản hệ thống.
-        Với phản chứng: điều kiện nào làm nó thất bại, log kèm theo.
+        For verification: date, environment (DEV/QA/PRD), system version.
+        For counter-evidence: what conditions made it fail, with logs attached.
       render: text
     validations:
       required: true
@@ -38,4 +38,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        Nhắc lại: không dán hostname, tenant ID, tên người dùng hay transport number thật.
+        Reminder: do not paste real hostnames, tenant IDs, usernames, or transport numbers.
